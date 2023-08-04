@@ -56,7 +56,6 @@ schema Container:
     workingDir?:                str
 
     check:
-        not data or all k in env {
-            regex.match(k, r"^[-._a-zA-Z][-._a-zA-Z0-9]*$")
-        }, "a valid environment variable name must consist of alphabetic characters, digits, '_', '-', or '.', and must not start with a digit"
-
+        all e in env {
+            regex.match(e, r"^[-._a-zA-Z][-._a-zA-Z0-9]*$")
+        } if env, "a valid environment variable name must consist of alphabetic characters, digits, '_', '-', or '.', and must not start with a digit"
