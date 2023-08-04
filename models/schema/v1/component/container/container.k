@@ -55,7 +55,49 @@ schema Container:
     # The current working directory of the running process defined in entrypoint.
     workingDir?:                str
 
+    # Dirs configures one or more volumes to be mounted to the specified folder.
+    dirs?:                      {str:str}
+    # Files configures one or more files to be created in the container.
+    files?:                     {str:FileSpec}
+
     check:
         all e in env {
             regex.match(e, r"^[-._a-zA-Z][-._a-zA-Z0-9]*$")
         } if env, "a valid environment variable name must consist of alphabetic characters, digits, '_', '-', or '.', and must not start with a digit"
+
+schema FileSpec:
+    """ FileSpec defines the target file in a Container.
+
+    Attributes
+    ----------
+    content: str, default is Undefined, optional.
+        File content in plain text.
+    contentFrom: str, default is Undefined, optional.
+        Source for the file content, reference to a secret of configmap value.
+    mode: str, default is Undefined, optional.
+        Mode bits used to set permissions on this file, must be an octal value
+        between 0000 and 0777 or a decimal value between 0 and 511
+
+    Examples
+    --------
+    import models.schema.v1.component.container as c
+
+    tmpFile = c.FileSpec {
+        content: "some file contents"
+        mode: "0777"
+    }
+    """
+
+    # The content of target file in plain text.
+    content?:                   str
+
+    # Source for the file content, might be a reference to a secret value.
+    contentFrom?:               str
+
+    # Mode bits used to set permissions on this file.
+    # Defaults to 0644.
+    mode?:                      str = "0644"
+
+    check:
+        not content or not contentFrom, "content and contentFrom are mutually exclusive"
+        regex.match(mode, r"^[0-7]{3,4}$"), "valid mode must between 0000 and 0777, both inclusive"
