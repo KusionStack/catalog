@@ -1,4 +1,4 @@
-import models.schema.v1.component as c
+import models.schema.v1.component as cmp
 
 schema AppConfiguration:
     """ AppConfiguration is a developer-centric definition that describes how to run an Application.
@@ -28,6 +28,8 @@ schema AppConfiguration:
     }
     """
 
+    __settings__: {str:str} = {"output_type" = "STANDALONE"}
+
     # Component defines the delivery artifact of one application.
     # Each application can be composed by multiple components.
-    components?:                 {str:c.Component}
+    components?:                 {str:cmp.Component}

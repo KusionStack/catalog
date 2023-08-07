@@ -1,4 +1,4 @@
-import models.schema.v1.component.container as c
+import models.schema.v1.component.workload as wl
 
 schema Component:
     """ Component defines the delivery artifact of one application. Each component
@@ -32,13 +32,11 @@ schema Component:
     }
     """
 
-    # The templates of containers to be ran.
-    containers:                 {str:c.Container}
-
-    # The number of containers that should be ran.
-    # Default is 2 to meet high availability requirements.
-    # Not supported when type is Job.
-    replicas:                   int = 2
+    # Job describes how the Application's tasks are expected to be run. A job will contiune to run until it succeeds.
+    job: wl.Job
+    # LongRunningService defines long-running, scalable workload types that should "never" go down, 
+    # and handle short-lived latency-sensitive requests.
+    longRunningService: wl.LongRunningService
 
     ###### Other metadata info
     # Labels and annotations can be used to attach arbitrary metadata as key-value pairs to resources.
