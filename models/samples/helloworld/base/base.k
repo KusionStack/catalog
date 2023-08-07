@@ -39,7 +39,7 @@ appConfiguration: ac.AppConfiguration {
                         command: ["/bin/sh", "-c", "echo hello"]
                     }
                 }
-                # The schedule in Cron format
+                # The scheduling strategy in Cron format.
                 schedule: "0 0 13 * 5"
             }
         }
