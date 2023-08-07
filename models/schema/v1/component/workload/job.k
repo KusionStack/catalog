@@ -9,7 +9,7 @@ schema Job:
         Containers defines the templates of containers to be ran.
         More info: https://kubernetes.io/docs/concepts/containers
     schedule: str, default is Undefined, optional.
-        The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
+        The scheduling strategy in Cron format, see https://en.wikipedia.org/wiki/Cron.
 
     Examples
     --------
@@ -30,5 +30,5 @@ schema Job:
     # The template of container to be ran.
     containers: {str:c.Container}
 
-    # The schedule in Cron format.
+    # The scheduling strategy in Cron format.
     schedule?: str
