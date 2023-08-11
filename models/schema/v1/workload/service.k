@@ -23,3 +23,4 @@ schema Service(WorkloadBase):
     """
 
     # More service workload attributes here
+    $type: "Deployment" | "StatefulSet" = "Deployment"
