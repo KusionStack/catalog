@@ -1,6 +1,7 @@
 import models.schema.v1 as ac
 import models.schema.v1.workload as wl
 import models.schema.v1.workload.container as c
+import models.schema.v1.workload.container.probe as p
 
 # base.k declares reuseable configurations for all stacks.
 
@@ -22,6 +23,13 @@ helloworld: ac.AppConfiguration {
                 }
                 # Run the command "/bin/sh -c echo hi", as defined above, in the directory "/tmp"
                 workingDir: "/tmp"
+                # Configure a HTTP readiness probe
+                readinessProbe: p.Probe {
+                    probeHandler: p.Http {
+                        url: "http://localhost:80"
+                    }
+                    initialDelaySeconds: 10
+                }
             }
         }
         replicas: 2
