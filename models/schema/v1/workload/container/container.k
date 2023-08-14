@@ -38,7 +38,7 @@ schema Container:
     lifecycle: lc.Lifecycle, default is Undefined, optional.
         Lifecyle refers to actions that the management system should take in response to container lifecycle events.
 
-     Examples
+    Examples
     --------
     import models.schema.v1.workload.container as c
 

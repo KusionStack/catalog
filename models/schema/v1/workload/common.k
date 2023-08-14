@@ -25,7 +25,6 @@ schema WorkloadBase:
     replicas:                   int = 2
 
     ###### Other metadata info
-
     # Labels and annotations can be used to attach arbitrary metadata as key-value pairs to resources.
     labels?:                    {str:str}
     annotations?:               {str:str}
