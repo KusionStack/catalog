@@ -1,3 +1,6 @@
+import models.schema.v1.workload.container.probe as p
+import models.schema.v1.workload.container.lifecycle as lc
+
 import regex
 
 schema Container:
@@ -23,10 +26,21 @@ schema Container:
     workingDir: str, default is Undefined, optional.
         The working directory of the running process defined in entrypoint.
         Continer runtime's default will be used if this is not specified.
+    livenessProbe: p.Probe, default is Undefined, optional.
+        LivenessProbe indicates if a running process is healthy.
+        Container will be restarted if the probe fails.
+    readinessProbe: p.Probe, default is Undefined, optional.
+        ReadinessProbe indicates whether an application is available to handle requests.
+        The default value can be referred to presupposed template: sigma/base/pkg/kusion_models/templates/sofa_probe.k
+    startupProbe: p.Probe, default is Undefined, optional.
+        StartupProbe indicates that the container has started for the first time.
+        Container will be restarted if the probe fails.
+    lifecycle: lc.Lifecycle, default is Undefined, optional.
+        Lifecyle refers to actions that the management system should take in response to container lifecycle events.
 
      Examples
     --------
-    import models.schema.v1.component.container as c
+    import models.schema.v1.workload.container as c
 
     web = c.Container {
         image:   "nginx:latest"
@@ -60,6 +74,20 @@ schema Container:
     # Files configures one or more files to be created in the container.
     files?:                     {str:FileSpec}
 
+    # Liveness probe for this container.
+    # Liveness probe indicates if a running process is healthy.
+    livenessProbe?:             p.Probe
+    # Readiness probe for this container.
+    # Readiness probe indicates whether an application is available to handle requests.
+    readinessProbe?:            p.Probe
+    # Startup probe for this container.
+    # Startup probe indicates that the container has started for the first time.
+    startupProbe?:              p.Probe
+
+    # Lifecycle configures actions which should be taken response to container lifecycle
+    # events.
+    lifecycle?:                 lc.Lifecycle
+
     check:
         all e in env {
             regex.match(e, r"^[-._a-zA-Z][-._a-zA-Z0-9]*$")
@@ -80,7 +108,7 @@ schema FileSpec:
 
     Examples
     --------
-    import models.schema.v1.component.container as c
+    import models.schema.v1.workload.container as c
 
     tmpFile = c.FileSpec {
         content: "some file contents"
