@@ -26,12 +26,23 @@ schema Container:
     workingDir: str, default is Undefined, optional.
         The working directory of the running process defined in entrypoint.
         Continer runtime's default will be used if this is not specified.
+    resources: {str:str}, default is Undefined, optional.
+        Map of resource requirements the container should run with.
+        The resources parameter is a dict with the key being the resource name and the value being
+        the resource value.
+    files: {str:str}, default is Undefined, optional.
+        List of files to create in the container.
+        The files parameter is a dict with the key being the file name in the container and the value
+        being the target file specification.
+    dirs: {str:str}, default is Undefined, optional.
+        Collection of volumes mount into the container's filesystem.
+        The dirs parameter is a dict with the key being the folder name in the container and the value
+        being the referenced volume.
     livenessProbe: p.Probe, default is Undefined, optional.
         LivenessProbe indicates if a running process is healthy.
         Container will be restarted if the probe fails.
     readinessProbe: p.Probe, default is Undefined, optional.
         ReadinessProbe indicates whether an application is available to handle requests.
-        The default value can be referred to presupposed template: sigma/base/pkg/kusion_models/templates/sofa_probe.k
     startupProbe: p.Probe, default is Undefined, optional.
         StartupProbe indicates that the container has started for the first time.
         Container will be restarted if the probe fails.
@@ -48,31 +59,35 @@ schema Container:
         env: {
             "name": "value"
         }
+        resources: {
+            "cpu": "2"
+            "memory": "4Gi"
+        }
     }
     """
 
-    # Image to run for this container
+    # Image to run for this container.
     image:                      str
 
     # Entrypoint array.
     # The image's ENTRYPOINT is used if this is not provided.
     command?:                   [str]
-
     # Arguments to the entrypoint.
     # The image's CMD is used if this is not provided.
     args?:                      [str]
-
     # Collection of environment variables to set in the container.
     # The value of environment variable may be static text or a value from a secret.
     env?:                       {str:str}
-
     # The current working directory of the running process defined in entrypoint.
     workingDir?:                str
 
-    # Dirs configures one or more volumes to be mounted to the specified folder.
-    dirs?:                      {str:str}
+    # Resource requirements for this container.
+    resources?:                 {str:str}
+
     # Files configures one or more files to be created in the container.
     files?:                     {str:FileSpec}
+    # Dirs configures one or more volumes to be mounted to the specified folder.
+    dirs?:                      {str:str}
 
     # Liveness probe for this container.
     # Liveness probe indicates if a running process is healthy.
@@ -124,7 +139,7 @@ schema FileSpec:
 
     # Mode bits used to set permissions on this file.
     # Defaults to 0644.
-    mode?:                      str = "0644"
+    mode:                       str = "0644"
 
     check:
         not content or not contentFrom, "content and contentFrom are mutually exclusive"

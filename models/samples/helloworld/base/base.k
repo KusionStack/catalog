@@ -23,6 +23,10 @@ helloworld: ac.AppConfiguration {
                 }
                 # Run the command "/bin/sh -c echo hi", as defined above, in the directory "/tmp"
                 workingDir: "/tmp"
+                resources: {
+                    "cpu": "2"
+                    "memory": "4Gi"
+                }
                 # Configure a HTTP readiness probe
                 readinessProbe: p.Probe {
                     probeHandler: p.Http {
