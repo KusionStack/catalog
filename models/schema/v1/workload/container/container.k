@@ -1,11 +1,12 @@
 import models.schema.v1.workload.container.probe as p
 import models.schema.v1.workload.container.lifecycle as lc
+import models.schema.v1.workload.network as n
 
 import regex
 
 schema Container:
     """ Container describes how the Application's tasks are expected to be run. Depending on
-    the replicas parameter 1 or more containers can be created from each template.
+    the parameter replicas, one or more containers can be created from each template.
 
     Attributes
     ----------
@@ -25,7 +26,10 @@ schema Container:
         The value of the environment variable may be static text or a value from a secret.
     workingDir: str, default is Undefined, optional.
         The working directory of the running process defined in entrypoint.
-        Continer runtime's default will be used if this is not specified.
+        If not specified, default container runtime will be in use.
+    ports: [n.ContainerPort], default is Undefined, optional.
+        List of the port that are available on the container.
+        If empty, the container cannot be accessed by other containers.
     livenessProbe: p.Probe, default is Undefined, optional.
         LivenessProbe indicates if a running process is healthy.
         Container will be restarted if the probe fails.
@@ -51,7 +55,7 @@ schema Container:
     }
     """
 
-    # Image to run for this container
+    # Image to run for this container.
     image:                      str
 
     # Entrypoint array.
@@ -73,6 +77,9 @@ schema Container:
     dirs?:                      {str:str}
     # Files configures one or more files to be created in the container.
     files?:                     {str:FileSpec}
+
+    # Ports defines which ports are available on the container.
+    ports?:                     [n.ContainerPort]
 
     # Liveness probe for this container.
     # Liveness probe indicates if a running process is healthy.
