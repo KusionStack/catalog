@@ -5,6 +5,8 @@ schema Service(WorkloadBase):
 
     Attributes
     ----------
+    type: str = "Deployment" | "CollaSet", default is Deployment, optianl.
+        type represents the type of workload used by this Service. Currently, it supports several types, including Deployment and CollaSet.
 
     Examples
     --------
@@ -23,3 +25,6 @@ schema Service(WorkloadBase):
     """
 
     # More service workload attributes here
+    
+    # type represents the type of workload used by this Service. Currently, it supports several types, including Deployment and CollaSet.
+    type:       "Deployment" | "CollaSet" = "Deployment"

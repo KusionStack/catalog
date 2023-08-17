@@ -1,4 +1,5 @@
 import models.schema.v1.workload as wl
+import models.schema.v1.trait as t
 
 schema AppConfiguration:
     """ AppConfiguration is a developer-centric definition that describes how to run an Application.
@@ -10,6 +11,8 @@ schema AppConfiguration:
     workload: wl.Service | wl.Job, default is Undefined, required.
         Workload defines how to run your application code. Currently supported workload profile
         includes Service and Job.
+    opsRule: t.OpsRule, default is Undefined, optional.
+        OpsRule specifies collection of rules that will be checked for Day-2 operation.
 
     Examples
     --------
@@ -30,10 +33,11 @@ schema AppConfiguration:
     }
     """
 
-    __settings__: {str:str} = {"output_type" = "STANDALONE"}
-
     # Workload defines how to run your application code.
     workload:                   wl.Service | wl.Job
+    
+    # OpsRule specifies collection of rules that will be checked for Day-2 operation.
+    opsRule?:                   t.OpsRule
 
     ###### Other metadata info
 

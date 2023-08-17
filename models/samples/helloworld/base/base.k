@@ -1,10 +1,10 @@
 import models.schema.v1 as ac
+import models.schema.v1.trait as t
 import models.schema.v1.workload as wl
 import models.schema.v1.workload.container as c
 import models.schema.v1.workload.container.probe as p
 
 # base.k declares reuseable configurations for all stacks.
-
 helloworld: ac.AppConfiguration {
     workload: wl.Service {
         containers: {
@@ -32,11 +32,30 @@ helloworld: ac.AppConfiguration {
                 }
             }
         }
-        replicas: 2
     }
 }
 
-samplejob: ac.AppConfiguration {
+helloworldcollaset: ac.AppConfiguration {
+    workload: wl.Service {
+        type: "CollaSet"
+        containers: {
+            "nginx": c.Container {
+                image: "nginx:v1"
+                # Run the following command as defined
+                command: ["/bin/sh", "-c", "echo hi"]
+                # Extra arguments append to command defined above
+                args: ["/bin/sh", "-c", "echo hi"]
+                # Run the command "/bin/sh -c echo hi", as defined above, in the directory "/tmp"
+                workingDir: "/tmp"
+            }  
+        }
+    }
+    opsRule: t.OpsRule {
+        maxUnavailable: "30%"
+    }
+}
+
+helloworldjob: ac.AppConfiguration {
     workload: wl.Job {
         containers: {
             "busybox": c.Container {
