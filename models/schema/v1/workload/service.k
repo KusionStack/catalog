@@ -7,6 +7,9 @@ schema Service(WorkloadBase):
 
     Attributes
     ----------
+    type: str = "Deployment" | "CollaSet", default is Deployment, optianl.
+        type represents the type of workload used by this Service. Currently, it supports several types,
+        including Deployment and CollaSet.
     routes: {str:n.Route}, default is Undefined, optional.
         Routes describes the paths based on HTTP/HTTPS routing which can access the Service's exposed
         containers from outside the cluster.
@@ -14,8 +17,6 @@ schema Service(WorkloadBase):
         configuration of routes can work.
         Multiple hostnames are supported, which are set in the keys. If the key is empty, then the
         route applies the cluster specified IP address.
-    type: str = "Deployment" | "CollaSet", default is Deployment, optianl.
-        type represents the type of workload used by this Service. Currently, it supports several types, including Deployment and CollaSet.
 
     Examples
     --------
@@ -51,10 +52,9 @@ schema Service(WorkloadBase):
     }
     """
 
-    # More service workload attributes here
-
-    # type represents the type of workload used by this Service. Currently, it supports several types, including Deployment and CollaSet.
-    type:       "Deployment" | "CollaSet" = "Deployment"
+    # type represents the type of workload used by this Service. Currently, it supports several types,
+    # including Deployment and CollaSet.
+    type:                       "Deployment" | "CollaSet" = "Deployment"
 
     # The hostnames and corresponding HTTP/HTTPS routes to expose the Service outside the cluster.
-    routes?:                     {str : n.Route}
+    routes?:                    {str : n.Route}
