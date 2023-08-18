@@ -3,6 +3,7 @@ import models.schema.v1.trait as t
 import models.schema.v1.workload as wl
 import models.schema.v1.workload.container as c
 import models.schema.v1.workload.container.probe as p
+import models.schema.v1.workload.network as n
 
 # base.k declares reuseable configurations for all stacks.
 helloworld: ac.AppConfiguration {
@@ -23,6 +24,14 @@ helloworld: ac.AppConfiguration {
                 }
                 # Run the command "/bin/sh -c echo hi", as defined above, in the directory "/tmp"
                 workingDir: "/tmp"
+                # Expose container port 80
+                ports: [
+                    n.ContainerPort {
+                        port: 80
+                        accessMode: "Exposed"
+                        accessPort: 80
+                    }
+                ]
                 # Configure a HTTP readiness probe
                 readinessProbe: p.Probe {
                     probeHandler: p.Http {
@@ -30,6 +39,15 @@ helloworld: ac.AppConfiguration {
                     }
                     initialDelaySeconds: 10
                 }
+            }
+        }
+        routes: {
+            "nginx.example.com": n.Route {
+                paths: [
+                    n.RoutePath {
+                        accessPort: 80
+                    }
+                ]
             }
         }
     }

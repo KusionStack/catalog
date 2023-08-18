@@ -1,4 +1,4 @@
-Schema Route
+schema Route:
     """ Route enables exposed container ports accessible by HTTP/HTTPS routing paths, so that the
      container can be accessed outside the cluster.
      There must be an IngressController in the cluster, then the configuration of Route can work.
@@ -18,7 +18,7 @@ Schema Route
         paths: [
             n.RoutePath {
                 path: "/example"
-                containerAccessPort: 80
+                accessPort: 80
             }
         ]
         tlsSecret: "example-tls-secret"
@@ -31,7 +31,7 @@ Schema Route
     # The Secret name which contains a TLS private key and certificate.
     tlsSecret?:                 str
 
-Schema RoutePath:
+schema RoutePath:
     """ RoutePath defines the HTTP/HTTPS path and corresponding backend container accessPort.
 
     Attributes
@@ -43,7 +43,7 @@ Schema RoutePath:
         matching is up to the IngressController. The following values are supported:
         - "Exact": Matches the URL path exactly and with case sensitivity;
         - "Prefix": Matches based on a URL path prefix split by /.
-    containerAccessPort: int, default is Undefined, required.
+    accessPort: int, default is Undefined, required.
         The corresponding container accessPort that the traffic will forwarding to.
 
     Examples
@@ -53,7 +53,7 @@ Schema RoutePath:
     routePath = n.RoutePath {
         path: "/example"
         pathType: "Exact"
-        containerAccessPort: 80
+        accessPort: 80
     }
     """
 
@@ -64,7 +64,7 @@ Schema RoutePath:
     pathType?:                  "Exact" | "Prefix"
 
     # The backend container accessPort.
-    containerAccessPort:        int
+    accessPort:        int
 
     check:
-        1 <= containerAccessPort <= 65535, "containerAccessPort must be between 1 and 65535, inclusive"
+        1 <= accessPort <= 65535, "accessPort must be between 1 and 65535, inclusive"

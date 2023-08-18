@@ -44,7 +44,7 @@ schema Service(WorkloadBase):
                 paths: [
                     n.RoutePath {
                         path: "/example"
-                        containerAccessPort: 80
+                        accessPort: 80
                     }
                 ]
             }
