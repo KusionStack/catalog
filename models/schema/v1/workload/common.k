@@ -1,4 +1,5 @@
 import models.schema.v1.workload.container as c
+import models.schema.v1.workload.secret as sec
 
 schema WorkloadBase:
     """ WorkloadBase defines set of attributes shared by different workload profile, e.g Service
@@ -19,6 +20,8 @@ schema WorkloadBase:
 
     # The templates of containers to be ran.
     containers:                 {str:c.Container}
+    # Secrets store small amount of sensitive data such as a password, a token, or a key.
+    secrets?:                   {str:sec.Secret}
 
     # The number of containers that should be ran.
     # Default is 2 to meet high availability requirements.

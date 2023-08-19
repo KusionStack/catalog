@@ -3,6 +3,7 @@ import models.schema.v1.trait as t
 import models.schema.v1.workload as wl
 import models.schema.v1.workload.container as c
 import models.schema.v1.workload.container.probe as p
+import models.schema.v1.workload.secret as sec
 
 # base.k declares reuseable configurations for all stacks.
 helloworld: ac.AppConfiguration {
@@ -32,6 +33,16 @@ helloworld: ac.AppConfiguration {
                 }
             }
         }
+        secrets: {
+            "basic-auth": sec.Secret {
+                $type: "basic"
+                data: {
+                    "username": "admin"
+                    "password": "******"
+                }
+            }
+        }
+        replicas: 2
     }
 }
 
