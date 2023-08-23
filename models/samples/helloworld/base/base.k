@@ -5,6 +5,7 @@ import models.schema.v1.workload.container as c
 import models.schema.v1.workload.container.probe as p
 import models.schema.v1.workload.secret as sec
 import models.schema.v1.workload.network as n
+import models.schema.v1.monitoring as m
 
 # base.k declares reusable configurations for all stacks.
 helloworld: ac.AppConfiguration {
@@ -55,6 +56,16 @@ helloworld: ac.AppConfiguration {
                 exposeInternet: True
             }
         ]
+    }
+    # Add the monitoring configuration backed by Prometheus
+    monitoring: m.Prometheus{
+        interval:       "30s"
+        timeout:        "15s"
+        path:           "/metrics"
+        port:           "web"
+        scheme:         "http"
+        operatorMode:    True
+        monitorType:    "service"
     }
 }
 
