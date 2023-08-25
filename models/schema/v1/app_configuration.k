@@ -16,7 +16,7 @@ schema AppConfiguration:
 
     Examples
     --------
-    Instantiate an App with a long-running service and its image is "nginx:v1"
+    # Instantiate an App with a long-running service and its image is "nginx:v1"
 
     import models.schema.v1 as ac
     import models.schema.v1.workload as wl
@@ -40,7 +40,6 @@ schema AppConfiguration:
     opsRule?:                   t.OpsRule
 
     ###### Other metadata info
-
     # Labels and annotations can be used to attach arbitrary metadata as key-value pairs to resources.
     labels?:                    {str:str}
     annotations?:               {str:str}

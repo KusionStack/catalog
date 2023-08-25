@@ -25,7 +25,7 @@ schema Container:
         The value of the environment variable may be static text or a value from a secret.
     workingDir: str, default is Undefined, optional.
         The working directory of the running process defined in entrypoint.
-        Continer runtime's default will be used if this is not specified.
+        Default container runtime will be used if this is not specified.
     resources: {str:str}, default is Undefined, optional.
         Map of resource requirements the container should run with.
         The resources parameter is a dict with the key being the resource name and the value being
@@ -47,7 +47,7 @@ schema Container:
         StartupProbe indicates that the container has started for the first time.
         Container will be restarted if the probe fails.
     lifecycle: lc.Lifecycle, default is Undefined, optional.
-        Lifecyle refers to actions that the management system should take in response to container lifecycle events.
+        Lifecycle refers to actions that the management system should take in response to container lifecycle events.
 
     Examples
     --------
