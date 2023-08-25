@@ -47,7 +47,7 @@ schema Container:
         StartupProbe indicates that the container has started for the first time.
         Container will be restarted if the probe fails.
     lifecycle: lc.Lifecycle, default is Undefined, optional.
-        Lifecyle refers to actions that the management system should take in response to container lifecycle events.
+        Lifecycle refers to actions that the management system should take in response to container lifecycle events.
 
     Examples
     --------

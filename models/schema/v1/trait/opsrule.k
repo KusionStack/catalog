@@ -3,7 +3,7 @@ schema OpsRule:
     operation rules will be checked before any Day-2 operations.
 
     Attributes
-    --------
+    ----------
     maxUnavailable: str or int, default is Undefined, optional.
         The maximum percentage of the total pod instances in the component that can be
         simultaneously unhealthy.
