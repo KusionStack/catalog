@@ -18,5 +18,5 @@ schema OpsRule:
     """
 
     # The maximum percentage of the total pod instances in the component that can be
-    simultaneously unhealthy.
+    # simultaneously unhealthy.
     maxUnavailable?:            int | str
