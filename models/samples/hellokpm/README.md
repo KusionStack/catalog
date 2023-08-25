@@ -8,20 +8,23 @@ It adds modification on `catalog/modules/samples/helloworld`.
 
 ### 1.1. For app configuration `hellokpm`
 
-Add `kcl.mod` and `kcl.mod.lock` in the root directory of the app.
+Add `kcl.mod` and `kcl.mod.lock` in the root directory of the 'hellokpm/base' and 'hellokpm/dev'.
 
 ```
 $ tree hellokpm
 hellokpm
     ├── README.md
     ├── base
-    │   └── base.k
+    │   ├── base.k
+    │   ├── kcl.mod # The dictionary contains 'kcl.mod' can be specified as a kcl package, like 'go.mod'.
+    │   └── kcl.mod.lock # The dictionary contains 'kcl.mod' can be specified as a kcl package, like 'go.mod'.
     ├── dev
+    │   ├── kcl.mod # The dictionary contains 'kcl.mod' can be specified as a kcl package, like 'go.mod'.
+    │   ├── kcl.mod.lock # The dictionary contains 'kcl.mod' can be specified as a kcl package, like 'go.mod'.
     │   ├── kcl.yaml
     │   ├── main.k
     │   └── stack.yaml
-    ├── kcl.mod # The dictionary contains 'kcl.mod' can be specified as a kcl package, like 'go.mod'.
-    └── kcl.mod.lock # 'kcl.mod.lock' is generated, like 'go.sum', do not modify it manually.
+    └── project.yaml
 ```
 
 ### 1.2. For the `catalog`
@@ -58,7 +61,7 @@ For `hellokpm/dev/main.k`:
 
 ## 3. Compile
 
-Under `catalog/models/samples/hellokpm`, run:
+Under `catalog/models/samples/hellokpm/dev`, run:
 
 ```
 kpm run

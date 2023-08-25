@@ -3,5 +3,5 @@
     name = "catalog"
     full_name = "catalog_0.0.1"
     version = "0.0.1"
-    sum = "Qoii9LnWidBscyUXxwe/aFKVBpaFW1JuiyGxdTL8Rxw="
-    path = "./../../../../catalog"
+    sum = "D0sR3y6z/mZryI0+tmNb1OU0U642Iix/uFhMPF8XacU="
+    path = "../../../../../catalog"

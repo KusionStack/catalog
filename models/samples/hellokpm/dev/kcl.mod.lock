@@ -1,0 +1,12 @@
+[dependencies]
+  [dependencies.base]
+    name = "base"
+    full_name = "base_0.0.1"
+    version = "0.0.1"
+    sum = "URgJYtM80udyrhGKiPceZVigDFgElaEYfPwPlTDYOeg="
+    path = "../base"
+  [dependencies.catalog]
+    name = "catalog"
+    full_name = "catalog_"
+    sum = "YaP69Qb8BxYNMh+iXByPeaCwcM6XphA20J+K/XAcU1A="
+    path = "../../../../../catalog"

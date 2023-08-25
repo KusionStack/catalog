@@ -1,0 +1,4 @@
+# The project basic info
+name: helloworld
+generator:
+  type: AppConfiguration
