@@ -4,6 +4,7 @@ import models.schema.v1.workload as wl
 import models.schema.v1.workload.container as c
 import models.schema.v1.workload.container.probe as p
 import models.schema.v1.workload.secret as sec
+import models.schema.v1.workload.network as n
 
 # base.k declares reuseable configurations for all stacks.
 helloworld: ac.AppConfiguration {
@@ -47,6 +48,21 @@ helloworld: ac.AppConfiguration {
             }
         }
         replicas: 2
+        network: n.Network {
+            ports: [80]
+            exposeInternet: True
+            routes: {
+                "example.helloworld.com": n.Route {
+                    protocol: "HTTPS"
+                    paths: [
+                        n.RoutePath {
+                            path: "/example"
+                            port: 80
+                        }
+                    ]
+                }
+            }
+        }
     }
 }
 
@@ -63,6 +79,10 @@ helloworldcollaset: ac.AppConfiguration {
                 # Run the command "/bin/sh -c echo hi", as defined above, in the directory "/tmp"
                 workingDir: "/tmp"
             }  
+        }
+        network: n.Network {
+            ports: [80]
+            exposeInternet: True
         }
     }
     opsRule: t.OpsRule {
