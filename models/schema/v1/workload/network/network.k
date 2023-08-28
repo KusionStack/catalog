@@ -37,7 +37,7 @@ schema Network:
     # The list of ports exposed.
     ports:                      [int]
 
-    # ExposeInternet indicates whether the service can be accessed through Intenet.
+    # ExposeInternet indicates whether the service can be accessed through Internet.
     exposeInternet:             bool = False
 
     # Routes is the hostnames and corresponding HTTP/HTTPS routes exposed to Internet.

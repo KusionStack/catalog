@@ -6,7 +6,7 @@ import models.schema.v1.workload.container.probe as p
 import models.schema.v1.workload.secret as sec
 import models.schema.v1.workload.network as n
 
-# base.k declares reuseable configurations for all stacks.
+# base.k declares reusable configurations for all stacks.
 helloworld: ac.AppConfiguration {
     workload: wl.Service {
         containers: {
