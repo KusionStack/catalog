@@ -26,9 +26,9 @@ schema Database:
     securityIPs: [str], default is ["0.0.0.0/0"], optional. 
         SecurityIPs defines the list of IP addresses allowed to access the rds 
         instance provided by the cloud vendor. 
-    alicloudVSwitchID: str, default is Undefined, optional. 
-        AlicloudVSwitchID defines the virtual switch ID to launch an alicloud 
-        rds instance. 
+    subnetID: str, default is Undefined, optional. 
+        SubnetID defines the virtual subnet ID associated with the VPC that the rds 
+        instance will be created in. 
     privateLink: bool, default is True, optional. 
         PrivateLink defines whether the host address of the rds instance for the workload 
         to connect with is via public network or private network of the cloud vendor. 
@@ -78,8 +78,9 @@ schema Database:
     # cloud vendor. 
     securityIPs?:       [str] = ["0.0.0.0/0"]
 
-    # The virtual vswitch ID to launch an alicloud rds instance. 
-    alicloudVSwitchID?: str
+    # The virtual subnet ID associated with the VPC that the rds instance will be
+    # created in. 
+    subnetID?: str
 
     # Whether the host address of the rds instance for the workload to connect with 
     # is via public network or private network of the cloud vendor. 
