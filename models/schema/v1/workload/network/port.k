@@ -10,8 +10,8 @@ schema Port:
         The backend container port. If empty, set it the same as the port.
     protocol: "TCP" | "UDP", default is "TCP", required.
         The protocol to access the port.
-    exposeInternet: bool, default is False, required.
-        ExposeInternet defines whether the port can be accessed through Internet.
+    public: bool, default is False, required.
+        Public defines whether the port can be accessed through Internet.
 
     Examples
     --------
@@ -21,7 +21,7 @@ schema Port:
         port: 80
         targetPort: 8080
         protocol: "TCP"
-        exposeInternet: True
+        public: True
     }
     """
 
@@ -34,8 +34,8 @@ schema Port:
     # The protocol of port.
     protocol:                   "TCP" | "UDP" = "TCP"
 
-    # ExposeInternet defines whether to expose the port through Internet.
-    exposeInternet:             bool = False
+    # Public defines whether to expose the port through Internet.
+    public:                     bool = False
 
 
     check:

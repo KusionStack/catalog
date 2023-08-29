@@ -52,7 +52,7 @@ helloworld: ac.AppConfiguration {
             n.Port {
                 port: 80
                 targetPort: 8080
-                exposeInternet: True
+                public: True
             }
         ]
     }
