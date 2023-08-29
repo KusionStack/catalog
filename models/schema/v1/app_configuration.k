@@ -1,5 +1,6 @@
 import models.schema.v1.workload as wl
 import models.schema.v1.trait as t
+import models.schema.v1.accessories.database as db
 
 schema AppConfiguration:
     """ AppConfiguration is a developer-centric definition that describes how to run an Application.
@@ -38,6 +39,9 @@ schema AppConfiguration:
     
     # OpsRule specifies collection of rules that will be checked for Day-2 operation.
     opsRule?:                   t.OpsRule
+
+    # Database describes a locally deployed or a cloud provider managed database instance for the workload. 
+    database?:                  db.Database 
 
     ###### Other metadata info
     # Labels and annotations can be used to attach arbitrary metadata as key-value pairs to resources.
