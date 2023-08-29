@@ -4,8 +4,9 @@ import models.schema.v1.workload as wl
 import models.schema.v1.workload.container as c
 import models.schema.v1.workload.container.probe as p
 import models.schema.v1.workload.secret as sec
+import models.schema.v1.workload.network as n
 
-# base.k declares reuseable configurations for all stacks.
+# base.k declares reusable configurations for all stacks.
 helloworld: ac.AppConfiguration {
     workload: wl.Service {
         containers: {
@@ -47,6 +48,13 @@ helloworld: ac.AppConfiguration {
             }
         }
         replicas: 2
+        ports: [
+            n.Port {
+                port: 80
+                targetPort: 8080
+                exposeInternet: True
+            }
+        ]
     }
 }
 
@@ -64,6 +72,11 @@ helloworldcollaset: ac.AppConfiguration {
                 workingDir: "/tmp"
             }  
         }
+        ports: [
+            n.Port {
+                port: 80
+            }
+        ]
     }
     opsRule: t.OpsRule {
         maxUnavailable: "30%"
