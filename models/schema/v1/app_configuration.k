@@ -38,8 +38,7 @@ schema AppConfiguration:
 
     # Workload defines how to run your application code.
     workload:                   wl.Service | wl.Job
-    secrets:                    {str: sec.Secret}
-    monitoring?:                 m.Prometheus
+    monitoring?:                m.Prometheus
     
     # OpsRule specifies collection of rules that will be checked for Day-2 operation.
     opsRule?:                   t.OpsRule

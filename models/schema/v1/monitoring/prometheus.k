@@ -17,12 +17,6 @@ schema Prometheus:
         The port to scrape metrics from. When using Prometheus operator, this needs to be the port NAME. Otherwise, this can be a port name or a number.
     scheme: str, default to http, optional
         The scheme to scrape metrics from. Possible values are http and https.
-    operatorMode: str, default to true, optional
-        Whether or not Prometheus is installed as an operator in the Kubernetes cluster. The recommended approach from the Prometheus team is to use the Prometheus operator.
-        For more information on Prometheus running modes and how they affect kusion's behavior, please see the design doc [here](https://github.com/KusionStack/kusion/blob/main/docs/prometheus.md).
-    monitorType: str, default to service, optional
-        The kind of resource monitor to create. Only applicable when operator mode is set to true. Possible values are service and pod. 
-        When operator mode is set to false, the scraping targets can only be set in the scraping job configuration, which kusion does not have permission to manage directly.
 
     Examples
     --------
@@ -34,8 +28,6 @@ schema Prometheus:
         path:           "/metrics"
         port:           "web"
         scheme:         "http"
-        operatorMode:   True
-        monitorType:    "service"
     }
     """
 
@@ -53,12 +45,6 @@ schema Prometheus:
 
     # Scheme defines the protocol Prometheus scrapes for metrics. Possible values are http and https.
     scheme?:         "http" | "https" = "http"
-
-    # operatorMode defines whether or not the installed Prometheus instance runs as an Kubernetes operator.
-    operatorMode?:   bool = True
-
-    # monitorType defines the kind of resource monitor to create when operatorMode is true. Possible values are service and pod.
-    monitorType?:    "pod" | "service" = "service"
 
     check:
         regex.match(interval, r"[A-Za-z0-9_.-]*"), "a valid interval must starts with alphanumeric and end with y/w/d/h/m/s/ms"

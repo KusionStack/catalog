@@ -64,8 +64,6 @@ helloworld: ac.AppConfiguration {
         path:           "/metrics"
         port:           "web"
         scheme:         "http"
-        operatorMode:    True
-        monitorType:    "service"
     }
 }
 
