@@ -29,7 +29,7 @@ schema Service(WorkloadBase):
         ports: [
             n.Port {
                 port: 80
-                exposeInternet: True
+                public: True
             }
             n.Port {
                 port: 9090
