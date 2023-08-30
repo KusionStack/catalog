@@ -2,3 +2,6 @@
 name: helloworld
 generator:
   type: AppConfiguration
+prometheus:
+  operatorMode: True
+  monitorType: Service 

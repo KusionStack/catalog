@@ -1,6 +1,8 @@
 import models.schema.v1.workload as wl
 import models.schema.v1.trait as t
 import models.schema.v1.accessories.database as db
+import models.schema.v1.workload.secret as sec
+import models.schema.v1.monitoring as m
 
 schema AppConfiguration:
     """ AppConfiguration is a developer-centric definition that describes how to run an Application.
@@ -36,6 +38,7 @@ schema AppConfiguration:
 
     # Workload defines how to run your application code.
     workload:                   wl.Service | wl.Job
+    monitoring?:                m.Prometheus
     
     # OpsRule specifies collection of rules that will be checked for Day-2 operation.
     opsRule?:                   t.OpsRule
