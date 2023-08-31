@@ -4,6 +4,13 @@ This is a sample KCL package managed by [kpm](https://github.com/kcl-lang/kpm).
 
 It adds modification on `catalog/modules/samples/helloworld`.
 
+## Supported Version
+
+```
+KCL version: v0.5.6
+KPM version: v0.3.4
+```
+
 ## 1. File Structure Changes
 
 ### 1.1. For app configuration `hellokpm`
@@ -16,8 +23,6 @@ hellokpm
     ├── README.md
     ├── base
     │   ├── base.k
-    │   ├── kcl.mod # The dictionary contains 'kcl.mod' can be specified as a kcl package, like 'go.mod'.
-    │   └── kcl.mod.lock # The dictionary contains 'kcl.mod' can be specified as a kcl package, like 'go.mod'.
     ├── dev
     │   ├── kcl.mod # The dictionary contains 'kcl.mod' can be specified as a kcl package, like 'go.mod'.
     │   ├── kcl.mod.lock # The dictionary contains 'kcl.mod' can be specified as a kcl package, like 'go.mod'.
@@ -50,10 +55,6 @@ The code changes between `catalog/modules/samples/hellokpm` and `catalog/modules
 ### 2.1. For app configuration `hellokpm`
 
 Add the package name in each import statement.
-
-For `hellokpm/base/base.k`:
-
-![base_git_diff](./png/base_import_diff.png)
 
 For `hellokpm/dev/main.k`:
 
