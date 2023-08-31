@@ -1,9 +1,9 @@
-import catalog.models.schema.v1 as ac
-import catalog.models.schema.v1.trait as t
-import catalog.models.schema.v1.workload as wl
-import catalog.models.schema.v1.workload.container as c
-import catalog.models.schema.v1.workload.container.probe as p
-import catalog.models.schema.v1.workload.secret as sec
+import models.schema.v1 as ac
+import models.schema.v1.trait as t
+import models.schema.v1.workload as wl
+import models.schema.v1.workload.container as c
+import models.schema.v1.workload.container.probe as p
+import models.schema.v1.workload.secret as sec
 
 # base.k declares reuseable configurations for all stacks.
 helloworld: ac.AppConfiguration {

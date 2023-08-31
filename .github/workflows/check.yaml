@@ -43,4 +43,3 @@ jobs:
           min_length: 5 # Min length of the title
           max_length: 80 # Max length of the title
           github_token: ${{ github.token }} # Default: ${{ github.token }}
-

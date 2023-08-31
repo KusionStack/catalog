@@ -4,11 +4,10 @@ edition = "*"
 version = "0.0.1"
 
 [dependencies]
-base = { path = "../base" }
 catalog = { path = "../../../../../catalog" }
 
 [profile]
 entries = [
-    "${base:KCL_MOD}/base.k",
+    "../base/base.k",
     "main.k"
 ]
