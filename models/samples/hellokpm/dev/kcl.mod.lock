@@ -1,7 +1,0 @@
-[dependencies]
-  [dependencies.catalog]
-    name = "catalog"
-    full_name = "catalog_0.0.1"
-    version = "0.0.1"
-    sum = "6yF9e6DotK1Bi8YUeKUxz8yuPcxXJ1rm1w4bZTyOo/o="
-    path = "../../../../../catalog"
