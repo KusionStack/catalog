@@ -28,9 +28,10 @@ schema Database:
         instance provided by the cloud vendor. 
     subnetID: str, default is Undefined, optional. 
         SubnetID defines the virtual subnet ID associated with the VPC that the rds 
-        instance will be created in. 
-    privateLink: bool, default is True, optional. 
-        PrivateLink defines whether the host address of the rds instance for the workload 
+        instance will be created in. The rds instance won't be created in user's own VPC 
+        if this field is not provided. 
+    privateRouting: bool, default is True, optional. 
+        PrivateRouting defines whether the host address of the rds instance for the workload 
         to connect with is via public network or private network of the cloud vendor. 
     extraMap: {str:str}, default is Undefined, optional. 
         ExtraMap defines the diversified rds configuration items from different
@@ -84,7 +85,7 @@ schema Database:
 
     # Whether the host address of the rds instance for the workload to connect with 
     # is via public network or private network of the cloud vendor. 
-    privateLink?:    bool = True
+    privateRouting?:    bool = True
 
     # The diversified rds configuration items from different cloud vendors. 
     extraMap?:          {str:str}
