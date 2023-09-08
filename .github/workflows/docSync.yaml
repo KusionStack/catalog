@@ -1,0 +1,85 @@
+name: Doc Sync
+on:
+  push:
+    branches:
+    - main
+    paths:
+    - 'models/**'
+jobs:
+  doc-sync:
+    runs-on: ubuntu-latest
+    container:
+      image: kusionstack/kcl-go:latest
+    steps:
+      - name: Install git 
+        run: |
+          apt-get install -y git
+          git --version
+          export PATH=$PATH:$(which git)
+          echo "Path is ... $PATH"
+      - uses: actions/checkout@v4
+        with: 
+          fetch-depth: 0
+      - name: Install GH CLI # Selfhosted runners do not come with the GH CLI out of the box. This action is an easy-to-use way to install it.
+        uses: dev-hanz-ops/install-gh-cli-action@v0.1.0
+        with:
+          gh-cli-version: 2.14.2
+      - name: set up git workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - id: doc-sync
+        shell: bash
+        run: |
+          NAMESPACE="KusionStack"
+          REPOSITORY="kusionstack.io"
+          USERNAME="kusion-docs"
+          FOLDER="$REPOSITORY"
+          SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")
+          BRANCH_NAME="doc-sync-${SHORT_SHA}"
+
+          # generate the model docs
+          kcl-go doc generate --format md --file-path ./
+
+          # Clone the remote repository and change working directory to the
+          # folder it was cloned to.
+          git clone \
+            --depth=1 \
+            --branch=main \
+            https://github.com/$NAMESPACE/$REPOSITORY \
+            $FOLDER
+          cd $FOLDER
+
+          # clean the old content
+          rm -rf ./docs/reference/model/documentation/
+          mkdir ./docs/reference/model/documentation/
+          # copy the generated docs to doc repo
+          mv "$GITHUB_WORKSPACE"/docs/models/models.md ./docs/reference/model/documentation/documentation.md
+          mv "$GITHUB_WORKSPACE"/docs/models/schema ./docs/reference/model/documentation/
+
+          # Setup the committers identity.
+          git config user.email "kusiondocs@gmail.com"
+          git config user.name $USERNAME
+
+          # Create a new feature branch for the changes.
+          git checkout -b $BRANCH_NAME
+
+          # Commit the changes and push the feature branch to forked repo
+          git add .
+          git commit -m "chore: update and sync model docs for latest model version: $SHORT_SHA"
+          echo "push the branch to remote repo: ${USERNAME}/${REPOSITORY}"
+          git push https://${USERNAME}:${{ secrets.kusion_docs_pat }}@github.com/$USERNAME/$REPOSITORY.git $BRANCH_NAME
+
+          echo "create PR: source: $USERNAME/$REPOSITORY/$BRANCH_NAME, target: $NAMESPACE/$REPOSITORY/main"
+          # Store the PAT in a file that can be accessed by the
+          # GitHub CLI.
+          echo "${{ secrets.kusion_docs_pat }}" > token.txt
+
+          # Authorize GitHub CLI for the current repository and
+          # create a pull-requests containing the updates.
+          gh auth login --with-token < token.txt
+          gh pr create \
+            --body "sync model doc from [catalog repo: $SHORT_SHA](https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA)" \
+            --title "chore: update model docs from $SHORT_SHA" \
+            --base "main" \
+            --head "$USERNAME:$BRANCH_NAME" \
+            --repo $NAMESPACE/$REPOSITORY
+            
