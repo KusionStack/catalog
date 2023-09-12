@@ -1,5 +1,6 @@
 import models.schema.v1.workload.container as c
 import models.schema.v1.workload.secret as sec
+import models.schema.v1.workload.volume as v
 
 schema WorkloadBase:
     """ WorkloadBase defines set of attributes shared by different workload profile, e.g Service
@@ -26,6 +27,9 @@ schema WorkloadBase:
     # The number of containers that should be ran.
     # Default is 2 to meet high availability requirements.
     replicas:                   int = 2
+
+    # Volumes store persistent data that can be mounted by containers.
+    volumes?:                   [v.Volume]
 
     ###### Other metadata info
     # Labels and annotations can be used to attach arbitrary metadata as key-value pairs to resources.
