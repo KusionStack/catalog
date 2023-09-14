@@ -49,4 +49,4 @@ schema Prometheus:
     check:
         regex.match(interval, r"[A-Za-z0-9_.-]*"), "a valid interval must starts with alphanumeric and end with y/w/d/h/m/s/ms"
         regex.match(timeout, r"[A-Za-z0-9_.-]*"), "a valid timeout must starts with alphanumeric and end with y/w/d/h/m/s/ms"
-        port and path if operatorMode == False, "port and path must be set only when operator mode is false"
+        # port and path if operatorMode == False, "port and path must be set only when operator mode is false"
