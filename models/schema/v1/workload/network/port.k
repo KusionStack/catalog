@@ -44,6 +44,6 @@ schema Port:
     public:                     bool = False
 
     check:
-        type if public, "type must exist when public is True, inclusive"
+        type if public, "type must exist when public is True"
         1 <= port <= 65535, "port must be between 1 and 65535, inclusive"
         1 <= targetPort <= 65535 if targetPort, "targetPort must be between 1 and 65535, inclusive"
