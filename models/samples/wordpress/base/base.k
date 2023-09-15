@@ -28,6 +28,7 @@ wordpress: ac.AppConfiguration {
         replicas: 2
         ports: [
             n.Port {
+                type: "aliyun"
                 port: 80
                 public: True
             }
