@@ -1,13 +1,13 @@
 import regex
 
 schema Secret:
-    """ Secret can be used to store sensitive data.
+    """ Secrets are used to provide data that is considered sensitive like passwords, API keys,
+    TLS certificates, tokens or other credentials.
 
     Attributes
     ----------
-    $type: str, default is opaque, required.
+    $type: str, default is Undefined, required.
         Type of secret, used to facilitate programmatic handling of secret data.
-        More info: https://kubernetes.io/docs/concepts/configuration/secret/#secret-types
     data: {str,str}, default is Undefined, optional.
         Data contains the non-binary secret data in string form.
     immutable: bool, default is Undefined, optional.
@@ -27,12 +27,12 @@ schema Secret:
     """
 
     # The type of target secret.
-    $type:                      "basic" | "opaque" = "opaque"
+    $type:                      "basic" | "token" | "opaque"
 
     # Data defines the keys and data that will be used by secret.
     data?:                      {str:str}
 
-    # If immutable set to true, ensures that data stored in the Secret cannot.
+    # If immutable set to true, ensures that data stored in the Secret cannot be updated.
     immutable?:                 bool
 
     check:
