@@ -38,6 +38,8 @@ schema AppConfiguration:
 
     # Workload defines how to run your application code.
     workload:                   wl.Service | wl.Job
+
+    # Monitoring specifies workload metrics scrape rules.
     monitoring?:                m.Prometheus
     
     # OpsRule specifies collection of rules that will be checked for Day-2 operation.
