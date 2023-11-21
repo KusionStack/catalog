@@ -27,7 +27,7 @@ schema Secret:
     """
 
     # The type of target secret.
-    $type:                      "basic" | "token" | "opaque"
+    $type:                      "basic" | "token" | "opaque" | "certificate"
 
     # Data defines the keys and data that will be used by secret.
     data?:                      {str:str}
