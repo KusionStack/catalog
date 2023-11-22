@@ -14,8 +14,16 @@ schema AppConfiguration:
     workload: wl.Service | wl.Job, default is Undefined, required.
         Workload defines how to run your application code. Currently supported workload profile
         includes Service and Job.
+    monitoring: m.Prometheus, default is Undefined, optional.
+        Monitoring specifies how to scrape Prometheus metrics for the workload.
+    database: db.Database, default is Undefined, optional.
+        Database describes a locally deployed or a cloud provider managed database instance for the workload.
     opsRule: t.OpsRule, default is Undefined, optional.
         OpsRule specifies collection of rules that will be checked for Day-2 operation.
+    labels: {str:str}, default is Undefined, optional.
+        Labels can be used to attach arbitrary metadata as key-value pairs to resources.
+    annotations: {str:str}, default is Undefined, optional.
+        Annotations are key/value pairs that attach arbitrary non-identifying metadata to resources.
 
     Examples
     --------
@@ -38,13 +46,15 @@ schema AppConfiguration:
 
     # Workload defines how to run your application code.
     workload:                   wl.Service | wl.Job
+
+    # Monitoring specifies how to scrape metrics for the workload.
     monitoring?:                m.Prometheus
     
     # OpsRule specifies collection of rules that will be checked for Day-2 operation.
     opsRule?:                   t.OpsRule
 
-    # Database describes a locally deployed or a cloud provider managed database instance for the workload. 
-    database?:                  db.Database 
+    # Database describes a locally deployed or a cloud provider managed database instance for the workload.
+    database?:                  db.Database
 
     ###### Other metadata info
     # Labels and annotations can be used to attach arbitrary metadata as key-value pairs to resources.

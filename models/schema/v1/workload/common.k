@@ -10,6 +10,8 @@ schema WorkloadBase:
     containers: {str:c.Container}, default is Undefined, required.
         Containers defines the templates of containers to be ran.
         More info: https://kubernetes.io/docs/concepts/containers
+    secrets: {str:sec.Secret}, default is Undefined, optional.
+        Secrets can be used to store small amount of sensitive data e.g. password, token
     replicas: int, default is 2, required.
         Number of container replicas based on this configuration that should be ran.
     labels: {str:str}, default is Undefined, optional.
