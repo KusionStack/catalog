@@ -20,6 +20,8 @@ schema Probe:
         Minimum consecutive successes for the probe to be considered successful after having failed.
     failureThreshold: int, default is Undefined, optional.
         Minimum consecutive failures for the probe to be considered failed after having succeeded.
+    terminationGracePeriod: int, default is Undefined, optional.
+        Duration in seconds before terminate gracefully upon probe failure.
 
     Examples
     --------

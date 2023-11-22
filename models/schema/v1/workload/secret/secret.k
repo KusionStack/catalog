@@ -6,7 +6,7 @@ schema Secret:
 
     Attributes
     ----------
-    $type: str, default is Undefined, required.
+    type: str, default is Undefined, required.
         Type of secret, used to facilitate programmatic handling of secret data.
     data: {str,str}, default is Undefined, optional.
         Data contains the non-binary secret data in string form.
@@ -27,7 +27,7 @@ schema Secret:
     """
 
     # The type of target secret.
-    $type:                      "basic" | "token" | "opaque" | "certificate"
+    type:                       "basic" | "token" | "opaque" | "certificate"
 
     # Data defines the keys and data that will be used by secret.
     data?:                      {str:str}

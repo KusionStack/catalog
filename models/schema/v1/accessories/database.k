@@ -53,42 +53,42 @@ schema Database:
 
     # The local deployment mode or the specific cloud vendor that provides the 
     # relational database service (rds). 
-    type:              str
+    type:                       str
 
     # The database engine to use. 
-    engine:             str
+    engine:                     str
 
     # The database engine version to use. 
-    version:            str
+    version:                    str
 
     # The type of the database which is required when creating an rds instance
     # provided by the cloud vendor. 
-    instanceType?:       str
+    instanceType?:              str
 
     # The allocated storage size of the rds instance provided by the cloud vendor 
     # in GB. 
-    size?:              int = 10
+    size?:                      int = 10
 
     # The edition of the rds instance provided by the cloud vendor. 
-    category?:          str = "Basic"
+    category?:                  str = "Basic"
 
     # The operation account for the database. 
-    username?:          str = "root"
+    username?:                  str = "root"
 
     # The list of IP addresses allowed to access the rds instance provided by the 
     # cloud vendor. 
-    securityIPs?:       [str] = ["0.0.0.0/0"]
+    securityIPs?:               [str] = ["0.0.0.0/0"]
 
     # The virtual subnet ID associated with the VPC that the rds instance will be
     # created in. 
-    subnetID?: str
+    subnetID?:                  str
 
     # Whether the host address of the rds instance for the workload to connect with 
     # is via public network or private network of the cloud vendor. 
-    privateRouting?:    bool = True
+    privateRouting?:            bool = True
 
     # The diversified rds configuration items from different cloud vendors. 
-    extraMap?:          {str:str}
+    extraMap?:                  {str:str}
 
     check: 
         instanceType if type != "local", "instanceType is required for cloud provider managed database"

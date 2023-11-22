@@ -11,7 +11,7 @@ schema Service(WorkloadBase):
         Type represents the type of workload used by this Service. Currently, it supports several
         types, including Deployment and CollaSet.
     ports: [n.Port], default is Undefined, optional.
-        The list of ports of the Service should get exposed.
+        The list of ports which the Service should get exposed.
 
     Examples
     --------
