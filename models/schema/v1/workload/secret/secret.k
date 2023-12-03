@@ -8,6 +8,8 @@ schema Secret:
     ----------
     type: str, default is Undefined, required.
         Type of secret, used to facilitate programmatic handling of secret data.
+    params: {str,str}, default is Undefined, optional.
+        Collection of parameters used to facilitate programmatic handling of secret data.
     data: {str,str}, default is Undefined, optional.
         Data contains the non-binary secret data in string form.
     immutable: bool, default is Undefined, optional.
@@ -26,8 +28,11 @@ schema Secret:
     }
     """
 
-    # The type of target secret.
-    type:                       "basic" | "token" | "opaque" | "certificate"
+    # Types of secrets available to use.
+    type:                       "basic" | "token" | "opaque" | "certificate" | "external"
+
+    # Params defines extra parameters used to customize secret handling.
+    params?:                    {str:str}
 
     # Data defines the keys and data that will be used by secret.
     data?:                      {str:str}
