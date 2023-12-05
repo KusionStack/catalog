@@ -41,7 +41,7 @@ helloworld: ac.AppConfiguration {
         }
         secrets: {
             "basic-auth": sec.Secret {
-                $type: "basic"
+                type: "basic"
                 data: {
                     "username": "admin"
                     "password": "******"
