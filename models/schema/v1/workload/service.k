@@ -7,9 +7,6 @@ schema Service(WorkloadBase):
 
     Attributes
     ----------
-    type: str = "Deployment" | "CollaSet", default is Deployment, required.
-        Type represents the type of workload used by this Service. Currently, it supports several
-        types, including Deployment and CollaSet.
     ports: [n.Port], default is Undefined, optional.
         The list of ports which the Service should get exposed.
 
@@ -37,10 +34,6 @@ schema Service(WorkloadBase):
         ]
     }
     """
-
-    # Type represents the type of workload used by this Service. Currently, it supports several
-    # types, including Deployment and CollaSet.
-    type:                       "Deployment" | "CollaSet" = "Deployment"
 
     # The list of ports get exposed.
     ports?:                      [n.Port]
