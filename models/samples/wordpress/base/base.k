@@ -2,7 +2,6 @@ import models.schema.v1 as ac
 import models.schema.v1.trait as t
 import models.schema.v1.workload as wl
 import models.schema.v1.workload.container as c
-import models.schema.v1.workload.container.probe as p
 import models.schema.v1.workload.secret as sec
 import models.schema.v1.workload.network as n
 import models.schema.v1.monitoring as m
@@ -11,7 +10,6 @@ import models.schema.v1.accessories.database as db
 # base.k declares reusable configurations for all stacks.
 wordpress: ac.AppConfiguration {
     workload: wl.Service {
-        type: "CollaSet"
         containers: {
             "wordpress": c.Container {
                 image: "wordpress:latest"

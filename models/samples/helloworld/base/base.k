@@ -70,7 +70,6 @@ helloworld: ac.AppConfiguration {
 
 helloworldcollaset: ac.AppConfiguration {
     workload: wl.Service {
-        type: "CollaSet"
         containers: {
             "nginx": c.Container {
                 image: "nginx:v1"
