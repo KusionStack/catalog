@@ -1,8 +1,8 @@
 import models.schema.v1.workload as wl
 import models.schema.v1.trait as t
-import models.schema.v1.accessories.database as db
 import models.schema.v1.workload.secret as sec
 import models.schema.v1.monitoring as m
+import models.schema.v1.accessories.mysql 
 
 schema AppConfiguration:
     """ AppConfiguration is a developer-centric definition that describes how to run an Application.
@@ -16,8 +16,8 @@ schema AppConfiguration:
         includes Service and Job.
     monitoring: m.Prometheus, default is Undefined, optional.
         Monitoring specifies how to scrape Prometheus metrics for the workload.
-    database: db.Database, default is Undefined, optional.
-        Database describes a locally deployed or a cloud provider managed database instance for the workload.
+    mysql: mysql.MySQL, default is Undefined, optional. 
+        MySQL describes a locally deployed or a cloud provider managed mysql database instance for the workload. 
     opsRule: t.OpsRule, default is Undefined, optional.
         OpsRule specifies collection of rules that will be checked for Day-2 operation.
     labels: {str:str}, default is Undefined, optional.
@@ -53,8 +53,8 @@ schema AppConfiguration:
     # OpsRule specifies collection of rules that will be checked for Day-2 operation.
     opsRule?:                   t.OpsRule
 
-    # Database describes a locally deployed or a cloud provider managed database instance for the workload.
-    database?:                  db.Database
+    # MySQL describes a locally deployed or a cloud provider managed mysql database instance for the workload. 
+    mysql?:                     mysql.MySQL
 
     ###### Other metadata info
     # Labels and annotations can be used to attach arbitrary metadata as key-value pairs to resources.

@@ -5,7 +5,7 @@ import models.schema.v1.workload.container as c
 import models.schema.v1.workload.secret as sec
 import models.schema.v1.workload.network as n
 import models.schema.v1.monitoring as m
-import models.schema.v1.accessories.database as db
+import models.schema.v1.accessories.mysql
 
 # base.k declares reusable configurations for all stacks.
 wordpress: ac.AppConfiguration {
@@ -32,17 +32,8 @@ wordpress: ac.AppConfiguration {
             }
         ]
     }
-    database: db.Database {
-        type: "alicloud"
-        engine: "MySQL"
+    mysql: mysql.MySQL {
+        type: "cloud"
         version: "5.7"
-        size: 20
-        instanceType: "mysql.n2.serverless.1c"
-        category: "serverless_basic"
-
-        # SubnetID defines the virtual subnet ID associated with the VPC that the rds 
-        # instance will be created in. The rds instance won't be created in user's own VPC 
-        # if this field is not provided. 
-        subnetID: "your_subnet_id"
     }
 }
