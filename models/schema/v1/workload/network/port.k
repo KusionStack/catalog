@@ -4,8 +4,6 @@ schema Port:
 
     Attributes
     ----------
-    type: "aliyun" | "aws", default is Undefined, optional.
-        The specific cloud vendor that provides load balancer, works when public is True.
     port: int, default is 80, required.
         The exposed port of the Service.
     targetPort: int, default is Undefined, optional.
@@ -20,16 +18,12 @@ schema Port:
     import models.schema.v1.workload.network as n
 
     port = n.Port {
-        type: "aliyun"
         port: 80
         targetPort: 8080
         protocol: "TCP"
         public: True
     }
     """
-
-    # The specific cloud vendor that provides load balancer, works when public is True.
-    type?:                      "aliyun" | "aws"
 
     # The exposed port of the Service.
     port:                       int = 80
