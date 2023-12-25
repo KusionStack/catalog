@@ -51,7 +51,6 @@ helloworld: ac.AppConfiguration {
         replicas: 2
         ports: [
             n.Port {
-                type: "aliyun"
                 port: 80
                 targetPort: 8080
                 public: True
