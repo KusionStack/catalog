@@ -10,7 +10,7 @@ schema OpsRule:
 
     Examples
     --------
-    import models.schema.v1.component.trait as t
+    import models.schema.v1.trait as t
 
     opsRule = t.OpsRule {
         maxUnavailable: "30%"
@@ -19,4 +19,4 @@ schema OpsRule:
 
     # The maximum percentage of the total pod instances in the component that can be
     # simultaneously unhealthy.
-    maxUnavailable?:            int | str
+    maxUnavailable?:            int | str = "25%"
