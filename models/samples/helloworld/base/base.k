@@ -40,7 +40,7 @@ helloworld: ac.AppConfiguration {
             }
         }
         secrets: {
-            "basic-auth": sec.Secret {
+            "basic-auth": sec.BasicAuthSecret {
                 type: "basic"
                 data: {
                     "username": "admin"
