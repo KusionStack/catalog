@@ -15,9 +15,9 @@ schema Secret:
     ----------
     type: str, default is Undefined, required.
         Type of secret, used to facilitate programmatic handling of secret data.
-    params: {str,str}, default is Undefined, optional.
+    params: {str:str}, default is Undefined, optional.
         Collection of parameters used to facilitate programmatic handling of secret data.
-    data: {str,str}, default is Undefined, optional.
+    data: {str:str}, default is Undefined, optional.
         Data contains the non-binary secret data in string form.
     immutable: bool, default is Undefined, optional.
         Immutable, if set to true, ensures that data stored in the Secret cannot be updated.
