@@ -57,4 +57,50 @@ helloworld: ac.AppConfiguration {
             }
         ]
     }
+    # Add the monitoring configuration backed by Prometheus
+    monitoring: m.Prometheus{
+        interval:       "30s"
+        timeout:        "15s"
+        path:           "/metrics"
+        port:           "web"
+        scheme:         "http"
+    }
+}
+
+helloworldcollaset: ac.AppConfiguration {
+    workload: wl.Service {
+        containers: {
+            "nginx": c.Container {
+                image: "nginx:v1"
+                # Run the following command as defined
+                command: ["/bin/sh", "-c", "echo hi"]
+                # Extra arguments append to command defined above
+                args: ["/bin/sh", "-c", "echo hi"]
+                # Run the command "/bin/sh -c echo hi", as defined above, in the directory "/tmp"
+                workingDir: "/tmp"
+            }
+        }
+        ports: [
+            n.Port {
+                port: 80
+            }
+        ]
+    }
+    opsRule: t.OpsRule {
+        maxUnavailable: "30%"
+    }
+}
+
+helloworldjob: ac.AppConfiguration {
+    workload: wl.Job {
+        containers: {
+            "busybox": c.Container {
+                image: "busybox:1.28"
+                # Run the following command as defined
+                command: ["/bin/sh", "-c", "echo hello"]
+            }
+        }
+        # Run every hour.
+        schedule: "0 * * * *"
+    }
 }
