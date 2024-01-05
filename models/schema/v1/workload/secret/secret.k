@@ -5,6 +5,9 @@ SECRET_TYPE_DATA_MAPPING: {str:[str]} = {
     "basic": ["username", "password"]
     "token": ["token"]
     "certificate": ["tls.crt", "tls.key"]
+    # empty array means no pre-defined data keys
+    "opaque": []
+    "external": []
 }
 
 schema Secret:
