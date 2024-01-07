@@ -1,7 +1,6 @@
 import models.schema.v1.workload as wl
 import models.schema.v1.trait as t
 import models.schema.v1.accessories.database as db
-import models.schema.v1.workload.secret as sec
 import models.schema.v1.monitoring as m
 
 schema AppConfiguration:
@@ -16,10 +15,10 @@ schema AppConfiguration:
         includes Service and Job.
     monitoring: m.Prometheus, default is Undefined, optional.
         Monitoring specifies how to scrape Prometheus metrics for the workload.
-    database: db.Database, default is Undefined, optional.
-        Database describes a locally deployed or a cloud provider managed database instance for the workload.
     opsRule: t.OpsRule, default is Undefined, optional.
         OpsRule specifies collection of rules that will be checked for Day-2 operation.
+    database: db.Database, default is Undefined, optional.
+        Database describes a locally deployed or a cloud provider managed database instance for the workload.
     labels: {str:str}, default is Undefined, optional.
         Labels can be used to attach arbitrary metadata as key-value pairs to resources.
     annotations: {str:str}, default is Undefined, optional.
@@ -33,7 +32,7 @@ schema AppConfiguration:
     import models.schema.v1.workload as wl
     import models.schema.v1.workload.container as c
 
-    appConfiguration = ac.AppConfiguration {
+    helloworld : ac.AppConfiguration {
         workload: wl.Service {
             containers: {
                 "nginx": c.Container {

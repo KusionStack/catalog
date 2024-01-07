@@ -1,0 +1,4 @@
+# The project basic info
+name: hellocollaset
+generator:
+  type: AppConfiguration

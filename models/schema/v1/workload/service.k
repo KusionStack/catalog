@@ -16,8 +16,9 @@ schema Service(WorkloadBase):
 
     import models.schema.v1.workload as wl
     import models.schema.v1.workload.container as c
+    import models.schema.v1.workload.network as n
 
-    svc = wl.Service {
+    nginxSvc : wl.Service {
         containers: {
             "nginx": c.Container {
                 image: "nginx:v1"
@@ -36,4 +37,4 @@ schema Service(WorkloadBase):
     """
 
     # The list of ports get exposed.
-    ports?:                      [n.Port]
+    ports?:                     [n.Port]
