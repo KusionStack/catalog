@@ -1,10 +1,10 @@
 import models.schema.v1 as ac
 
-# main.k declares customized configurations for dev stack. 
+# main.k declares customized configurations for prod stack. 
 
 pgadmin: ac.AppConfiguration {
     workload.containers.pgadmin: {
-        # dev stack has different image
+        # prod stack has different image
         image = "dpage/pgadmin4:8.0"
     }
 }
