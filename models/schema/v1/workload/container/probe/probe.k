@@ -69,7 +69,7 @@ schema Exec:
 
     Attributes
     ----------
-    command: str, default is Undefined, required.
+    command: [str], default is Undefined, required.
         The command line to execute inside the container.
 
     Examples

@@ -14,7 +14,7 @@ schema Job(WorkloadBase):
     import models.schema.v1.workload as wl
     import models.schema.v1.workload.container as c
 
-    job: wl.Job {
+    echoJob : wl.Job {
         containers: {
             "busybox": c.Container{
                 image:   "busybox:1.28"

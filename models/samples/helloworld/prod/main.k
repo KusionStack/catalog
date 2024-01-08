@@ -1,10 +1,9 @@
 import models.schema.v1 as ac
 
-# main.k declares customized configurations for dev stack.
-
+# main.k declares customized configurations for prod stack.
 helloworld: ac.AppConfiguration {
     workload.containers.nginx: {
-        # dev stack has different image
+        # prod stack has different image
         image = "nginx:v2"
     }
 }

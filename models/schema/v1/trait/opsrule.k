@@ -12,7 +12,7 @@ schema OpsRule:
     --------
     import models.schema.v1.trait as t
 
-    opsRule = t.OpsRule {
+    opsRule : t.OpsRule {
         maxUnavailable: "30%"
     }
     """

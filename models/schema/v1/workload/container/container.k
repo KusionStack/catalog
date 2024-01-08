@@ -30,7 +30,7 @@ schema Container:
         Map of resource requirements the container should run with.
         The resources parameter is a dict with the key being the resource name and the value being
         the resource value.
-    files: {str:str}, default is Undefined, optional.
+    files: {str:FileSpec}, default is Undefined, optional.
         List of files to create in the container.
         The files parameter is a dict with the key being the file name in the container and the value
         being the target file specification.

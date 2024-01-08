@@ -31,6 +31,7 @@ wordpress: ac.AppConfiguration {
             }
         ]
     }
+    # Declare dependent database resource
     database: db.Database {
         type: "alicloud"
         engine: "MySQL"
