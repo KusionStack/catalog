@@ -13,3 +13,9 @@
 __pycache__
 __kclcache__
 .kclvm
+
+# workspace configuration for local testing
+workspace/
+
+# kusion state from local testing
+kusion_state.yaml
