@@ -1,0 +1,5 @@
+kcl_cli_configs:
+  file:
+    - ../base/base.k
+    - ./main.k
+  disable_none: false
