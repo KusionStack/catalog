@@ -12,7 +12,7 @@ schema WorkloadBase:
         More info: https://kubernetes.io/docs/concepts/containers
     secrets: {str:sec.Secret}, default is Undefined, optional.
         Secrets can be used to store small amount of sensitive data e.g. password, token.
-    replicas: int, default is 2, required.
+    replicas: int, optional.
         Number of container replicas based on this configuration that should be ran.
     labels: {str:str}, default is Undefined, optional.
         Labels are key/value pairs that are attached to the workload.
@@ -27,8 +27,7 @@ schema WorkloadBase:
     secrets?:                   {str:sec.Secret}
 
     # The number of containers that should be ran.
-    # Default is 2 to meet high availability requirements.
-    replicas:                   int = 2
+    replicas?:                   int
 
     ###### Other metadata info
     # Labels and annotations can be used to attach arbitrary metadata as key-value pairs to resources.
