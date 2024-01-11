@@ -25,7 +25,7 @@ schema Probe:
 
     Examples
     --------
-    import models.schema.v1.workload.container.probe as p
+    import catalog.models.schema.v1.workload.container.probe as p
 
     probe = p.Probe {
         probeHandler: p.Http {
@@ -74,7 +74,7 @@ schema Exec:
 
     Examples
     --------
-    import models.schema.v1.workload.container.probe as p
+    import catalog.models.schema.v1.workload.container.probe as p
 
     execProbe = p.Exec {
         command: ["probe.sh"]
@@ -100,7 +100,7 @@ schema Http:
 
     Examples
     --------
-    import models.schema.v1.workload.container.probe as p
+    import catalog.models.schema.v1.workload.container.probe as p
 
     httpProbe = p.Http {
         url: "http://localhost:80"
@@ -131,7 +131,7 @@ schema Tcp:
 
     Examples
     --------
-    import models.schema.v1.workload.container.probe as p
+    import catalog.models.schema.v1.workload.container.probe as p
 
     tcpProbe = p.Tcp {
         url: "tcp://localhost:1234"

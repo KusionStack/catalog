@@ -14,7 +14,7 @@ schema MySQL:
     --------
     Instantiate a local mysql database with version of 5.7. 
 
-    import models.schema.v1.accessories.mysql
+    import catalog.models.schema.v1.accessories.mysql
 
     mysql: mysql.MySQL {
         type: "local"

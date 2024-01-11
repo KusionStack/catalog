@@ -10,7 +10,7 @@ schema OpsRule:
 
     Examples
     --------
-    import models.schema.v1.trait as t
+    import catalog.models.schema.v1.trait as t
 
     opsRule : t.OpsRule {
         maxUnavailable: "30%"

@@ -51,7 +51,7 @@ schema Container:
 
     Examples
     --------
-    import models.schema.v1.workload.container as c
+    import catalog.models.schema.v1.workload.container as c
 
     web = c.Container {
         image:   "nginx:latest"
@@ -123,7 +123,7 @@ schema FileSpec:
 
     Examples
     --------
-    import models.schema.v1.workload.container as c
+    import catalog.models.schema.v1.workload.container as c
 
     tmpFile = c.FileSpec {
         content: "some file contents"

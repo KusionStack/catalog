@@ -15,7 +15,7 @@ schema Port:
 
     Examples
     --------
-    import models.schema.v1.workload.network as n
+    import catalog.models.schema.v1.workload.network as n
 
     port = n.Port {
         port: 80
