@@ -27,7 +27,7 @@ schema Secret:
 
     Examples
     --------
-    import models.schema.v1.workload.secret as sec
+    import catalog.models.schema.v1.workload.secret as sec
 
     basicAuth = sec.Secret {
         type: "basic"
@@ -57,4 +57,3 @@ schema Secret:
         all k in data {
             k in SECRET_TYPE_DATA_MAPPING[type] if len(SECRET_TYPE_DATA_MAPPING[type]) > 0
         } if data, "a valid secret data key name must be one of ${SECRET_TYPE_DATA_MAPPING[type]} for ${type} type secret"
-

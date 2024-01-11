@@ -11,8 +11,8 @@ schema Job(WorkloadBase):
     --------
     Instantiate a job with busybox image and runs every hour
 
-    import models.schema.v1.workload as wl
-    import models.schema.v1.workload.container as c
+    import catalog.models.schema.v1.workload as wl
+    import catalog.models.schema.v1.workload.container as c
 
     echoJob : wl.Job {
         containers: {

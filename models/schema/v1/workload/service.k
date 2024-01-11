@@ -14,9 +14,9 @@ schema Service(WorkloadBase):
     --------
     # Instantiate a long-running service and its image is "nginx:v1"
 
-    import models.schema.v1.workload as wl
-    import models.schema.v1.workload.container as c
-    import models.schema.v1.workload.network as n
+    import catalog.models.schema.v1.workload as wl
+    import catalog.models.schema.v1.workload.container as c
+    import catalog.models.schema.v1.workload.network as n
 
     nginxSvc : wl.Service {
         containers: {

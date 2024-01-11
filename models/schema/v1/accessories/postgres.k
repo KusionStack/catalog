@@ -14,7 +14,7 @@ schema PostgreSQL:
     --------
     Instantiate a local postgresql database with image version of 14.0. 
 
-    import models.schema.v1.accessories.postgres
+    import catalog.models.schema.v1.accessories.postgres
     
     postgres: postgres.PostgreSQL {
         type: "local"

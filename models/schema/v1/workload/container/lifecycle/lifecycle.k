@@ -16,8 +16,8 @@ schema Lifecycle:
 
     Examples
     --------
-    import models.schema.v1.workload.container.probe as p
-    import models.schema.v1.workload.container.lifecycle as lc
+    import catalog.models.schema.v1.workload.container.probe as p
+    import catalog.models.schema.v1.workload.container.lifecycle as lc
 
     lifecycleHook = lc.Lifecycle {
         preStop: p.Exec {
