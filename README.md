@@ -28,5 +28,6 @@ Based on the schema definitions, `models/samples` directory contains plenty of u
 
 * `hellocollaset` - demonstrates how to declare a long-running service, and the workload implementation of this service is `Collaset`, which is provided by [KusionStack Operating](https://github.com/KusionStack/operating).
 * `helloworld` - also declare a long-running service, with default Kubernetes Deployment workload.
-* `pgadmin` - declare a cloud provider managed Postgres resource, as well as a long-running service with `dpage/pgadmin4:latest` image.
+* `pgadmin` - declares a cloud provider managed Postgres resource, as well as a long-running service with `dpage/pgadmin4:latest` image.
 * `samplejob` - demonstrates how to declare a periodic job.
+* `wordpress` - declares a cloud provider managed MySQL resource, as well as a long-running service with `wordpress:6.3` image. 
