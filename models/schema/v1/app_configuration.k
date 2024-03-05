@@ -50,14 +50,8 @@ schema AppConfiguration:
     # Workload defines how to run your application code.
     workload:                   wl.Service | wl.Job
 
-    # Monitoring specifies how to scrape metrics for the workload.
-    monitoring?:                m.Prometheus
-    
-    # OpsRule specifies collection of rules that will be checked for Day-2 operation.
-    opsRule?:                   t.OpsRule
-
-    # Database describes a locally deployed or a cloud provider managed database instance for the workload. 
-    database?:                  {str: mysql.MySQL | postgres.PostgreSQL}
+    # Accessories defines a collection of accessories that will be attached to the workload. The key in this map represents the module source. e.g. kusionstack/mysql@v0.1
+    accessories:                {str:any}
 
     ###### Other metadata info
     # Labels and annotations can be used to attach arbitrary metadata as key-value pairs to resources.

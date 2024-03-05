@@ -37,10 +37,10 @@ pgadmin: ac.AppConfiguration {
             }
         ]
     }
-    database: {
-        pgadmin: postgres.PostgreSQL {
-            type: "cloud"
-            version: "14.0"
-        }
-    }
+    # database: {
+    #     pgadmin: postgres.PostgreSQL {
+    #         type: "cloud"
+    #         version: "14.0"
+    #     }
+    # }
 }
