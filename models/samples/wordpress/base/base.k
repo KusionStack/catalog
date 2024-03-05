@@ -28,10 +28,10 @@ wordpress: ac.AppConfiguration {
             }
         ]
     }
-    database: {
-        wordpress: mysql.MySQL {
-            type: "cloud"
-            version: "8.0"
-        }
-    }
+    # database: {
+    #     wordpress: mysql.MySQL {
+    #         type: "cloud"
+    #         version: "8.0"
+    #     }
+    # }
 }

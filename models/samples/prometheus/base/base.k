@@ -36,7 +36,7 @@ prometheus: ac.AppConfiguration {
         replicas: 2
     }
     # Add the monitoring configuration backed by Prometheus
-    monitoring: m.Prometheus{
-        path:           "/metrics"
-    }
+    # monitoring: m.Prometheus{
+    #     path:           "/metrics"
+    # }
 }
