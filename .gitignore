@@ -19,3 +19,6 @@ workspace/
 
 # kusion state from local testing
 kusion_state.yaml
+
+# local bin files
+models/bin/
