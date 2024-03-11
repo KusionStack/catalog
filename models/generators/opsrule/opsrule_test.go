@@ -1,20 +1,19 @@
 package main
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
+	"gopkg.in/yaml.v2"
+	"kusionstack.io/kusion-module-framework/pkg/module"
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
-	"kusionstack.io/kusion/pkg/modules/proto"
-	jsonutil "kusionstack.io/kusion/pkg/util/json"
-
-	generators "kusion-modules"
 )
 
 func TestOpsRuleModule_Generate(t *testing.T) {
 	resConfig30 := v1.Resource{
-		ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:foo:default-dev-foo",
+		ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:default:default-dev-foo",
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
 			"apiVersion": "apps.kusionstack.io/v1alpha1",
@@ -22,7 +21,7 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"creationTimestamp": interface{}(nil),
 				"name":              "default-dev-foo",
-				"namespace":         "foo",
+				"namespace":         "default",
 			},
 			"spec": map[string]interface{}{
 				"rules": []interface{}{map[string]interface{}{
@@ -44,7 +43,7 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 		},
 	}
 	resConfig40 := v1.Resource{
-		ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:foo:default-dev-foo",
+		ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:default:default-dev-foo",
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
 			"apiVersion": "apps.kusionstack.io/v1alpha1",
@@ -52,7 +51,7 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"creationTimestamp": interface{}(nil),
 				"name":              "default-dev-foo",
-				"namespace":         "foo",
+				"namespace":         "default",
 			},
 			"spec": map[string]interface{}{
 				"rules": []interface{}{map[string]interface{}{
@@ -87,24 +86,18 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 			Type: workload.Collaset,
 		},
 	}
-	ops30 := map[string]interface{}{
+	devConfig := map[string]interface{}{
 		"maxUnavailable": "30%",
 	}
-	ops40 := map[string]interface{}{
+	platformConfig := map[string]interface{}{
 		"maxUnavailable": 40,
 	}
 
-	devConfig := jsonutil.Marshal2String(ops30)
-	platformConfig := jsonutil.Marshal2String(ops40)
-	jobWorkload := jsonutil.Marshal2String(jobWorkloadConfig)
-	serviceWorkload := jsonutil.Marshal2String(serviceWorkloadConfig)
-	res30 := jsonutil.Marshal2String(resConfig30)
-	res40 := jsonutil.Marshal2String(resConfig40)
-	response30 := &proto.GeneratorResponse{
-		Resources: [][]byte{[]byte(res30)},
+	response30 := &module.GeneratorResponse{
+		Resources: []v1.Resource{resConfig30},
 	}
-	response40 := &proto.GeneratorResponse{
-		Resources: [][]byte{[]byte(res40)},
+	response40 := &module.GeneratorResponse{
+		Resources: []v1.Resource{resConfig40},
 	}
 
 	project := "default"
@@ -112,39 +105,39 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 	app := "foo"
 
 	type args struct {
-		r *proto.GeneratorRequest
+		r *module.GeneratorRequest
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *proto.GeneratorResponse
+		want    *module.GeneratorResponse
 		wantErr bool
 	}{
 		{
 			name: "test Job",
 			args: args{
-				r: &proto.GeneratorRequest{
+				r: &module.GeneratorRequest{
 					Project:              project,
 					Stack:                stack,
 					App:                  app,
-					Workload:             []byte(jobWorkload),
-					DevModuleConfig:      []byte(devConfig),
-					PlatformModuleConfig: []byte(platformConfig),
+					Workload:             jobWorkloadConfig,
+					DevModuleConfig:      devConfig,
+					PlatformModuleConfig: platformConfig,
 					RuntimeConfig:        nil,
 				},
 			},
-			want: generators.EmptyResponse(),
+			want: nil,
 		},
 		{
 			name: "test CollaSet with opsRule in appConfig",
 			args: args{
-				r: &proto.GeneratorRequest{
+				r: &module.GeneratorRequest{
 					Project:              project,
 					Stack:                stack,
 					App:                  app,
-					Workload:             []byte(serviceWorkload),
-					DevModuleConfig:      []byte(devConfig),
-					PlatformModuleConfig: []byte(platformConfig),
+					Workload:             serviceWorkloadConfig,
+					DevModuleConfig:      devConfig,
+					PlatformModuleConfig: platformConfig,
 				},
 			},
 			wantErr: false,
@@ -153,12 +146,12 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 		{
 			name: "test CollaSet with opsRule in workspace",
 			args: args{
-				r: &proto.GeneratorRequest{
+				r: &module.GeneratorRequest{
 					Project:              project,
 					Stack:                stack,
 					App:                  app,
-					Workload:             []byte(serviceWorkload),
-					PlatformModuleConfig: []byte(platformConfig),
+					Workload:             serviceWorkloadConfig,
+					PlatformModuleConfig: platformConfig,
 				},
 			},
 			wantErr: false,
@@ -168,13 +161,15 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			o := &OpsRuleModule{}
-			got, err := o.Generate(tt.args.r)
+			got, err := o.Generate(context.Background(), tt.args.r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Generate() got = %v, want %v", got, tt.want)
+			out, _ := yaml.Marshal(got)
+			out2, _ := yaml.Marshal(tt.want)
+			if !reflect.DeepEqual(string(out), string(out2)) {
+				t.Errorf("Generate()\ngot = %v\nwant = %v", string(out), string(out2))
 			}
 		})
 	}
