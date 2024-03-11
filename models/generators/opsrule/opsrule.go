@@ -1,41 +1,34 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"strconv"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"kusionstack.io/kube-api/apps/v1alpha1"
+	"kusionstack.io/kusion-module-framework/pkg/module"
+	"kusionstack.io/kusion-module-framework/pkg/server"
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
 	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/modules/proto"
-	jsonutil "kusionstack.io/kusion/pkg/util/json"
-
-	generators "kusion-modules"
 )
 
 type OpsRuleModule struct{}
 
-func (o *OpsRuleModule) Generate(r *proto.GeneratorRequest) (*proto.GeneratorResponse, error) {
-	emptyResponse := generators.EmptyResponse()
-	request, err := generators.NewGeneratorRequest(r)
-	if err != nil {
-		return nil, err
-	}
+func (o *OpsRuleModule) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
 
 	// opsRule does not exist in AppConfig and workspace config
 	if request.DevModuleConfig == nil && request.PlatformModuleConfig == nil {
 		log.Info("OpsRule does not exist in AppConfig and workspace config")
-		return emptyResponse, nil
+		return nil, nil
 	}
 
 	// Job does not support maxUnavailable
 	if request.Workload.Header.Type == workload.TypeJob {
 		log.Infof("Job does not support opsRule")
-		return emptyResponse, nil
+		return nil, nil
 	}
 
 	if request.Workload.Service.Type == workload.Collaset {
@@ -49,12 +42,12 @@ func (o *OpsRuleModule) Generate(r *proto.GeneratorRequest) (*proto.GeneratorRes
 				Kind:       "PodTransitionRule",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      modules.UniqueAppName(request.Project, request.Stack, request.App),
-				Namespace: request.App,
+				Name:      module.UniqueAppName(request.Project, request.Stack, request.App),
+				Namespace: request.Project,
 			},
 			Spec: v1alpha1.PodTransitionRuleSpec{
 				Selector: &metav1.LabelSelector{
-					MatchLabels: modules.UniqueAppLabels(request.Project, request.App),
+					MatchLabels: module.UniqueAppLabels(request.Project, request.App),
 				},
 				Rules: []v1alpha1.TransitionRule{
 					{
@@ -68,18 +61,16 @@ func (o *OpsRuleModule) Generate(r *proto.GeneratorRequest) (*proto.GeneratorRes
 				},
 			},
 		}
-		resourceID := modules.KubernetesResourceID(ptr.TypeMeta, ptr.ObjectMeta)
-		resource, err := generators.WrapK8sResourceToKusionResource(resourceID, ptr)
+		resourceID := module.KubernetesResourceID(ptr.TypeMeta, ptr.ObjectMeta)
+		resource, err := module.WrapK8sResourceToKusionResource(resourceID, ptr)
 		if err != nil {
 			return nil, err
 		}
-		str := jsonutil.Marshal2String(resource)
-		b := []byte(str)
-		return &proto.GeneratorResponse{
-			Resources: [][]byte{b},
+		return &module.GeneratorResponse{
+			Resources: []v1.Resource{*resource},
 		}, nil
 	}
-	return emptyResponse, nil
+	return nil, nil
 }
 
 func GetMaxUnavailable(devConfig v1.Accessory, platformConfig v1.GenericConfig) (intstr.IntOrString, error) {
@@ -114,5 +105,5 @@ func GetMaxUnavailable(devConfig v1.Accessory, platformConfig v1.GenericConfig) 
 }
 
 func main() {
-	modules.StartModule(&OpsRuleModule{})
+	server.Start(&OpsRuleModule{})
 }
