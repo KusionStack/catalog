@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	ModuleName                     = "monitoring"
 	PathKey                        = "path"
 	PortKey                        = "port"
 	OperatorModeKey                = "operatorMode"

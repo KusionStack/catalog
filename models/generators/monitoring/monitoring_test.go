@@ -37,6 +37,7 @@ func BuildMonitoringTestCase(
 		endpointType = "podMetricsEndpoints"
 	}
 	var expectedResources []apiv1.Resource
+	var expectedPatchers []apiv1.Patcher
 	uniqueName := modules.UniqueAppName(projectName, stackName, appName)
 	if operatorMode {
 		expectedResources = []apiv1.Resource{
@@ -80,22 +81,13 @@ func BuildMonitoringTestCase(
 		}
 
 	} else {
-		expectedResources = []apiv1.Resource{
+		expectedPatchers = []apiv1.Patcher{
 			{
-				ID:         "",
-				Type:       "Kubernetes",
-				Attributes: nil,
-				DependsOn:  nil,
-				Patcher: &apiv1.Patcher{
-					Annotations: map[string]string{
-						"prometheus.io/scrape": "true",
-						"prometheus.io/path":   path,
-						"prometheus.io/port":   port,
-						"prometheus.io/scheme": scheme,
-					},
-				},
-				Extensions: map[string]interface{}{
-					"GVK": "",
+				Annotations: map[string]string{
+					"prometheus.io/scrape": "true",
+					"prometheus.io/path":   path,
+					"prometheus.io/port":   port,
+					"prometheus.io/scheme": scheme,
 				},
 			},
 		}
@@ -107,23 +99,20 @@ func BuildMonitoringTestCase(
 			Stack:   stackName,
 			App:     appName,
 			PlatformModuleConfig: apiv1.GenericConfig{
-				ModuleName: map[string]interface{}{
-					TimeoutKey:      timeout,
-					IntervalKey:     interval,
-					SchemeKey:       scheme,
-					OperatorModeKey: operatorMode,
-					MonitorTypeKey:  monitorType,
-				},
+				TimeoutKey:      timeout,
+				IntervalKey:     interval,
+				SchemeKey:       scheme,
+				OperatorModeKey: operatorMode,
+				MonitorTypeKey:  monitorType,
 			},
 			DevModuleConfig: apiv1.Accessory{
-				ModuleName: map[string]interface{}{
-					PathKey: path,
-					PortKey: port,
-				},
+				PathKey: path,
+				PortKey: port,
 			},
 		},
 		want: &module.GeneratorResponse{
 			Resources: expectedResources,
+			Patchers:  expectedPatchers,
 		},
 		wantErr: wantErr,
 	}
@@ -134,6 +123,7 @@ func TestMonitoringGenerator_Generate(t *testing.T) {
 	ctx := context.TODO()
 	tests := []TestCase{
 		*BuildMonitoringTestCase("ServiceMonitorTest", "test-project", "test-stack", "test-app", "15s", "5s", "/metrics", "web", "http", "Service", true, false),
+		*BuildMonitoringTestCase("ServiceMonitorTest2", "test-project-2", "test-stack-2", "test-app-2", "15s", "5s", "/metrics", "web", "http", "Service", true, false),
 		*BuildMonitoringTestCase("PodMonitorTest", "test-project", "test-stack", "test-app", "15s", "5s", "/metrics", "web", "http", "Pod", true, false),
 		*BuildMonitoringTestCase("ServiceAnnotationTest", "test-project", "test-stack", "test-app", "30s", "15s", "/metrics", "8080", "http", "Service", false, false),
 		*BuildMonitoringTestCase("PodAnnotationTest", "test-project", "test-stack", "test-app", "30s", "15s", "/metrics", "8080", "http", "Pod", false, false),

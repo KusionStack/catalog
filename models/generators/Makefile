@@ -1,7 +1,7 @@
 TEST?=$$(go list ./... | grep -v 'vendor')
 ###### chang variables below according to your own modules ###
 NAMESPACE=kusionstack
-NAME=opsrule
+NAME=monitoring
 VERSION=v0.1.0
 BINARY=../bin/kusion-module-${NAME}_${VERSION}
 
@@ -17,7 +17,7 @@ export OS_ARCH ?= $(GOARCH_LOCAL)
 default: install
 
 build-darwin:
-	GOOS=darwin GOARCH=arm64 go build -o ${BINARY} ./${NAME}
+	GOOS=darwin GOARCH=arm64 go build -v -o ${BINARY} ./${NAME}
 
 install: build-darwin
 # copy module binary to $KUSION_HOME. e.g. ~/.kusion/modules/kusionstack/opsrule/v0.1.0/darwin/arm64/kusion-module-opsrule_v0.1.0

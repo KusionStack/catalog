@@ -14,7 +14,6 @@ import (
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/workspace"
 )
 
 func (g *MonitoringModule) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
@@ -25,6 +24,8 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 		return nil, nil
 	}
 
+	log.Debug("request.DevModuleConfig: ", request.DevModuleConfig)
+	log.Debug("request.PlatformModuleConfig: ", request.PlatformModuleConfig)
 	// Parse workspace configurations for monitoring generator.
 	if err := g.parseWorkspaceConfig(request.DevModuleConfig, request.PlatformModuleConfig); err != nil {
 		return nil, err
@@ -62,7 +63,7 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 			return nil, fmt.Errorf("MonitorType should either be service or pod %s", g.MonitorType)
 		}
 	} else {
-		fmt.Println("Operator mode is disabled. Patching workload annotations...")
+		log.Info("Operator mode is disabled. Patching workload annotations...")
 		// Patch workload annotations
 		annotations := map[string]string{
 			"prometheus.io/scrape": "true",
@@ -70,21 +71,11 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 			"prometheus.io/port":   g.Port,
 			"prometheus.io/scheme": g.Scheme,
 		}
-		resource := &v1.Resource{
-			ID:         "",
-			Type:       v1.Kubernetes,
-			Attributes: nil,
-			DependsOn:  nil,
-			Patcher: &v1.Patcher{
-				Annotations: annotations,
-			},
-			Extensions: map[string]any{
-				v1.ResourceExtensionGVK: "",
-			},
+		patchers := &v1.Patcher{
+			Annotations: annotations,
 		}
-		//resource.
 		return &module.GeneratorResponse{
-			Resources: []v1.Resource{*resource},
+			Patchers: []v1.Patcher{*patchers},
 		}, nil
 	}
 }
@@ -94,12 +85,12 @@ func main() {
 }
 
 // parseWorkspaceConfig parses the config items for monitoring generator in workspace configurations.
-func (g *MonitoringModule) parseWorkspaceConfig(accessories v1.Accessory, workspaceConfig v1.GenericConfig) error {
+func (g *MonitoringModule) parseWorkspaceConfig(devConfig v1.Accessory, workspaceConfig v1.GenericConfig) error {
 	// Get dev config and check if it is empty
-	devConfig, ok := accessories[ModuleName].(map[string]any)
-	if !ok {
-		return ErrEmptyMonitoringConfigBlock
-	}
+	// devConfig, ok := accessories[ModuleName].(map[string]any)
+	// if !ok {
+	// 	return ErrEmptyMonitoringConfigBlock
+	// }
 
 	// get path and port
 	if path, ok := devConfig[PathKey]; ok {
@@ -109,37 +100,29 @@ func (g *MonitoringModule) parseWorkspaceConfig(accessories v1.Accessory, worksp
 		g.Port = port.(string)
 	}
 
-	// Get workspace config and check if it is empty
-	wsConfig, ok := workspaceConfig[ModuleName]
-	// If AppConfiguration contains monitoring config but workspace does not,
-	// respond with the error ErrEmptyModuleConfigBlock
-	if !ok {
-		return workspace.ErrEmptyModuleConfigBlock
-	}
-
-	if operatorMode, ok := wsConfig.(map[string]any)[OperatorModeKey]; ok {
+	if operatorMode, ok := workspaceConfig[OperatorModeKey]; ok {
 		g.OperatorMode = operatorMode.(bool)
 	}
 
-	if monitorType, ok := wsConfig.(map[string]any)[MonitorTypeKey]; ok {
+	if monitorType, ok := workspaceConfig[MonitorTypeKey]; ok {
 		g.MonitorType = MonitorType(monitorType.(string))
 	} else {
 		g.MonitorType = DefaultMonitorType
 	}
 
-	if interval, ok := wsConfig.(map[string]any)[IntervalKey]; ok {
+	if interval, ok := workspaceConfig[IntervalKey]; ok {
 		g.Interval = prometheusv1.Duration(interval.(string))
 	} else {
 		g.Interval = DefaultInterval
 	}
 
-	if timeout, ok := wsConfig.(map[string]any)[TimeoutKey]; ok {
+	if timeout, ok := workspaceConfig[TimeoutKey]; ok {
 		g.Timeout = prometheusv1.Duration(timeout.(string))
 	} else {
 		g.Timeout = DefaultTimeout
 	}
 
-	if scheme, ok := wsConfig.(map[string]any)[SchemeKey]; ok {
+	if scheme, ok := workspaceConfig[SchemeKey]; ok {
 		g.Scheme = scheme.(string)
 	} else {
 		g.Scheme = DefaultScheme
