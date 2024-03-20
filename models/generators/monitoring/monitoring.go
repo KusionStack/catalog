@@ -31,9 +31,11 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 		return nil, err
 	}
 
+	// If operator mode is enabled, create monitor objects.
 	if g != nil && g.OperatorMode {
 		log.Info("Operator mode is enabled. Creating monitor objects...")
 		if g.MonitorType == ServiceMonitorType {
+			// Create ServiceMonitor if MonitorType is Service
 			serviceMonitor, err := g.buildMonitorObject(request, g.MonitorType)
 			if err != nil {
 				return nil, err
@@ -47,6 +49,7 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 				Resources: []v1.Resource{*resource},
 			}, nil
 		} else if g.MonitorType == PodMonitorType {
+			// Create PodMonitor if MonitorType is Pod
 			podMonitor, err := g.buildMonitorObject(request, g.MonitorType)
 			if err != nil {
 				return nil, err
@@ -63,6 +66,7 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 			return nil, fmt.Errorf("MonitorType should either be service or pod %s", g.MonitorType)
 		}
 	} else {
+		// Operator mode is disabled. Patching workload annotations
 		log.Info("Operator mode is disabled. Patching workload annotations...")
 		// Patch workload annotations
 		annotations := map[string]string{
@@ -86,13 +90,7 @@ func main() {
 
 // parseWorkspaceConfig parses the config items for monitoring generator in workspace configurations.
 func (g *MonitoringModule) parseWorkspaceConfig(devConfig v1.Accessory, workspaceConfig v1.GenericConfig) error {
-	// Get dev config and check if it is empty
-	// devConfig, ok := accessories[ModuleName].(map[string]any)
-	// if !ok {
-	// 	return ErrEmptyMonitoringConfigBlock
-	// }
-
-	// get path and port
+	// get path and port from devConfig
 	if path, ok := devConfig[PathKey]; ok {
 		g.Path = path.(string)
 	}
@@ -100,6 +98,7 @@ func (g *MonitoringModule) parseWorkspaceConfig(devConfig v1.Accessory, workspac
 		g.Port = port.(string)
 	}
 
+	// get operatorMode, monitorType, interval, timeout, scheme from workspaceConfig
 	if operatorMode, ok := workspaceConfig[OperatorModeKey]; ok {
 		g.OperatorMode = operatorMode.(bool)
 	}
@@ -128,6 +127,7 @@ func (g *MonitoringModule) parseWorkspaceConfig(devConfig v1.Accessory, workspac
 		g.Scheme = DefaultScheme
 	}
 
+	// validate the monitoring configuration
 	parsedTimeout, err := time.ParseDuration(string(g.Timeout))
 	if err != nil {
 		return err
@@ -137,6 +137,7 @@ func (g *MonitoringModule) parseWorkspaceConfig(devConfig v1.Accessory, workspac
 		return err
 	}
 
+	// validate the monitoring configuration
 	if parsedTimeout > parsedInterval {
 		return ErrTimeoutGreaterThanInterval
 	}
@@ -160,7 +161,9 @@ func (g *MonitoringModule) buildMonitorObject(request *module.GeneratorRequest, 
 		"kusion_monitoring_appname": request.App,
 	}
 
+	// Create ServiceMonitor or PodMonitor based on the monitorType
 	if monitorType == ServiceMonitorType {
+		// Create ServiceMonitor
 		serviceEndpoint := prometheusv1.Endpoint{
 			Interval:      g.Interval,
 			ScrapeTimeout: g.Timeout,
@@ -190,6 +193,7 @@ func (g *MonitoringModule) buildMonitorObject(request *module.GeneratorRequest, 
 		}
 		return serviceMonitor, nil
 	} else if monitorType == PodMonitorType {
+		// Create PodMonitor
 		podMetricsEndpoint := prometheusv1.PodMetricsEndpoint{
 			Interval:      g.Interval,
 			ScrapeTimeout: g.Timeout,
