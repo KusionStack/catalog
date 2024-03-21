@@ -45,8 +45,14 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 			if err != nil {
 				return nil, err
 			}
+			patcher := &v1.Patcher{
+				Labels: map[string]string{
+					"kusion_monitoring_appname": request.App,
+				},
+			}
 			return &module.GeneratorResponse{
 				Resources: []v1.Resource{*resource},
+				Patchers:  []v1.Patcher{*patcher},
 			}, nil
 		} else if g.MonitorType == PodMonitorType {
 			// Create PodMonitor if MonitorType is Pod
@@ -59,8 +65,14 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 			if err != nil {
 				return nil, err
 			}
+			patcher := &v1.Patcher{
+				Labels: map[string]string{
+					"kusion_monitoring_appname": request.App,
+				},
+			}
 			return &module.GeneratorResponse{
 				Resources: []v1.Resource{*resource},
+				Patchers:  []v1.Patcher{*patcher},
 			}, nil
 		} else {
 			return nil, fmt.Errorf("MonitorType should either be service or pod %s", g.MonitorType)
