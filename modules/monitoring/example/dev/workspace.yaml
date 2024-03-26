@@ -1,0 +1,25 @@
+# The below needs to be installed with the following command:
+# kusion workspace create dev -f workspace.yaml 
+modules:
+    kusionstack/monitoring@0.1.0:
+        default:
+            interval: 30s
+            monitorType: Service
+            operatorMode: true
+            scheme: http
+            timeout: 5s
+        high_frequency:
+            projectSelector:
+                - helloworld
+                - wordpress
+                - prometheus-sample-app
+            interval: 10s
+            monitorType: Service
+            timeout: 5s
+        low_frequency:
+            projectSelector:
+                - foo
+                - bar
+            interval: 2m
+            operatorMode: false
+            timeout: 1m
