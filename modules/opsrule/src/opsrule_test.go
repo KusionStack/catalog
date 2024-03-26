@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"gopkg.in/yaml.v2"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
 	"kusionstack.io/kusion/pkg/apis/core/v1/workload"

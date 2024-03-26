@@ -21,4 +21,4 @@ workspace/
 kusion_state.yaml
 
 # local bin files
-models/bin/
+modules/bin/

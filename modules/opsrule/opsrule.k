@@ -10,9 +10,22 @@ schema OpsRule:
 
     Examples
     --------
-    import catalog.models.schema.v1.trait as t
+    import opsrule as o
+    import kam.v1.app_configuration
+    import kam.v1.workload as wl
+    import kam.v1.workload.container as c
 
-    opsRule : t.OpsRule {
+    helloworld : ac.AppConfiguration {
+        workload: wl.Service {
+            containers: {
+                "nginx": c.Container {
+                    image: "nginx:v1"
+                }
+            }
+        }
+    }
+
+    opsRule : o.OpsRule {
         maxUnavailable: "30%"
     }
     """
