@@ -1,0 +1,8 @@
+modules: 
+  kusionstack/network@0.1.0: 
+      default: 
+        port: 
+          type: alicloud
+          annotations: 
+            service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec: slb.s1.small
+    

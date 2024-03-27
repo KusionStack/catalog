@@ -8,7 +8,7 @@ schema PostgreSQL:
         Type defines whether the postgresql database is deployed locally or provided by
         cloud vendor. 
     version: str, defaults to Undefined, required. 
-        Version defines the mysql version to use. 
+        Version defines the postgres version to use. 
 
     Examples
     --------
@@ -16,9 +16,11 @@ schema PostgreSQL:
 
     import catalog.models.schema.v1.accessories.postgres
     
-    postgres: postgres.PostgreSQL {
-        type: "local"
-        version: "14.0"
+    accessories: {
+        "postgres": postgres.PostgreSQL {
+            type:   "local"
+            version: "14.0"
+        }
     }
     """
 

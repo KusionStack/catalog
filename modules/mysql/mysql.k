@@ -16,9 +16,11 @@ schema MySQL:
 
     import catalog.models.schema.v1.accessories.mysql
 
-    mysql: mysql.MySQL {
-        type: "local"
-        version: "5.7"
+    accessories: {
+        "mysql": mysql.MySQL {
+            type:   "local"
+            version: "8.0"
+        }
     }
     """
 

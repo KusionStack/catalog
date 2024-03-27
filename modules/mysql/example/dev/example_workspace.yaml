@@ -1,0 +1,4 @@
+modules: 
+  kusionstack/mysql@0.1.0: 
+    default: 
+      databaseName: test-database
