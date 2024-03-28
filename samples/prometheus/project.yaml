@@ -1,4 +1,0 @@
-# The project basic info
-name: prometheus-sample-app
-generator:
-  type: AppConfiguration
