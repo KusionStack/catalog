@@ -1,4 +1,0 @@
-# The project basic info
-name: wordpress 
-generator:
-  type: AppConfiguration
