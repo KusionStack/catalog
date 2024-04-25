@@ -110,11 +110,12 @@ func (mysql *MySQL) Generate(_ context.Context, request *module.GeneratorRequest
 	// Generate the MySQL intance resources based on the type and the cloud provider config.
 	var resources []apiv1.Resource
 	var patchers []apiv1.Patcher
+	var providerType string
 	switch strings.ToLower(mysql.Type) {
 	case LocalDBType:
 		resources, patchers, err = mysql.GenerateLocalResources(request)
 	case CloudDBType:
-		providerType, err := GetCloudProviderType(request.PlatformModuleConfig)
+		providerType, err = GetCloudProviderType(request.PlatformModuleConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -122,17 +123,19 @@ func (mysql *MySQL) Generate(_ context.Context, request *module.GeneratorRequest
 		switch strings.ToLower(providerType) {
 		case "aws":
 			resources, patchers, err = mysql.GenerateAWSResources(request)
+			if err != nil {
+				return nil, err
+			}
 		case "alicloud":
 			resources, patchers, err = mysql.GenerateAlicloudResources(request)
+			if err != nil {
+				return nil, err
+			}
 		default:
 			return nil, fmt.Errorf("unsupported cloud provider type: %s", providerType)
 		}
 	default:
 		return nil, fmt.Errorf("unsupported mysql type: %s", mysql.Type)
-	}
-
-	if err != nil {
-		return nil, err
 	}
 
 	return &module.GeneratorResponse{
