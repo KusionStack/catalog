@@ -132,12 +132,20 @@ func (mysql *MySQL) generateLocalDeployment(request *module.GeneratorRequest) (*
 func (mysql *MySQL) generateLocalPodSpec(_ *module.GeneratorRequest) (v1.PodSpec, error) {
 	image := dbEngine + ":" + mysql.Version
 	secretName := mysql.DatabaseName + localSecretSuffix
+
+	var portName string
+	if len(mysql.DatabaseName) > 15 {
+		portName = mysql.DatabaseName[:15]
+	} else {
+		portName = mysql.DatabaseName
+	}
 	ports := []v1.ContainerPort{
 		{
-			Name:          mysql.DatabaseName,
+			Name:          portName,
 			ContainerPort: int32(3306),
 		},
 	}
+
 	volumes := []v1.Volume{
 		{
 			Name: mysql.DatabaseName,

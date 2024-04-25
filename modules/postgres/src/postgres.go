@@ -112,11 +112,12 @@ func (postgres *PostgreSQL) Generate(_ context.Context, request *module.Generato
 	// Generate the PostgreSQL intance resources based on the type and the cloud provider config.
 	var resources []apiv1.Resource
 	var patchers []apiv1.Patcher
+	var providerType string
 	switch strings.ToLower(postgres.Type) {
 	case LocalDBType:
 		resources, patchers, err = postgres.GenerateLocalResources(request)
 	case CloudDBType:
-		providerType, err := GetCloudProviderType(request.PlatformModuleConfig)
+		providerType, err = GetCloudProviderType(request.PlatformModuleConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -124,17 +125,19 @@ func (postgres *PostgreSQL) Generate(_ context.Context, request *module.Generato
 		switch strings.ToLower(providerType) {
 		case "aws":
 			resources, patchers, err = postgres.GenerateAWSResources(request)
+			if err != nil {
+				return nil, err
+			}
 		case "alicloud":
 			resources, patchers, err = postgres.GenerateAlicloudResources(request)
+			if err != nil {
+				return nil, err
+			}
 		default:
 			return nil, fmt.Errorf("unsupported cloud provider type: %s", providerType)
 		}
 	default:
 		return nil, fmt.Errorf("unsupported postgres type: %s", postgres.Type)
-	}
-
-	if err != nil {
-		return nil, err
 	}
 
 	return &module.GeneratorResponse{

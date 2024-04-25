@@ -134,12 +134,20 @@ func (postgres *PostgreSQL) generateLocalDeployment(request *module.GeneratorReq
 func (postgres *PostgreSQL) generateLocalPodSpec(_ *module.GeneratorRequest) (v1.PodSpec, error) {
 	image := dbEngine + ":" + postgres.Version
 	secretName := postgres.DatabaseName + localSecretSuffix
+
+	var portName string
+	if len(postgres.DatabaseName) > 15 {
+		portName = postgres.DatabaseName[:15]
+	} else {
+		portName = postgres.DatabaseName
+	}
 	ports := []v1.ContainerPort{
 		{
-			Name:          postgres.DatabaseName,
+			Name:          portName,
 			ContainerPort: int32(5432),
 		},
 	}
+
 	volumes := []v1.Volume{
 		{
 			Name: postgres.DatabaseName,
