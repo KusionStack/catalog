@@ -1,0 +1,8 @@
+[dependencies]
+  [dependencies.kam]
+    name = "kam"
+    full_name = "kam_0.2.0-beta"
+    version = "0.2.0-beta"
+    sum = "SktUX5eD9/fp4gQJc1fyXy5kxAFPEChMKlMe0pn2y9Y="
+    url = "https://github.com/KusionStack/kam.git"
+    git_tag = "0.2.0-beta"
