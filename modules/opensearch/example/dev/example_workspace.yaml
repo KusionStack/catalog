@@ -1,0 +1,20 @@
+modules:
+  opensearch:
+    path: oci://ghcr.io/kusionstack/opensearch
+    version: 0.1.0
+    configs:
+      default:
+        region: us-east-1
+        clusterConfig:
+            instanceType: r6g.large.search
+        ebsOptions:
+          ebsEnabled: true
+          volumeSize: 10
+        statement:
+        - effect: Allow
+          principals:
+          - type: AWS
+            identifiers:
+            - "*"
+          action:
+          - es:*
