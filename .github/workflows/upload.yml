@@ -21,7 +21,7 @@ jobs:
         id: find_dirs
         run: |
           # Get changed files. 
-          dirs=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | awk -F'/' '{print $1}' | sort -u | uniq)
+          dirs=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | awk -F'/' '{print $1"/"$2}' | sort -u | uniq)
 
           # Check current file tree. 
           tree .
