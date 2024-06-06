@@ -66,9 +66,12 @@ jobs:
           # Manually source the Kusion environment variables. 
           source "$HOME/.kusion/.env"
 
+          # Get the current absolute path. 
+          current_abs_path=$(pwd)
+
           # Push modules to the GitHub Packages. 
           for dir in ${dirs_changed[@]}; do
-            cd $dir
+            cd "$current_abs_path/$dir"
             kusion mod push . oci://ghcr.io/kusionstack --os-arch=darwin/amd64 --creds $PACKAGE_TOKEN --latest=true
             kusion mod push . oci://ghcr.io/kusionstack --os-arch=darwin/arm64 --creds $PACKAGE_TOKEN --latest=true
             kusion mod push . oci://ghcr.io/kusionstack --os-arch=linux/amd64 --creds $PACKAGE_TOKEN --latest=true
