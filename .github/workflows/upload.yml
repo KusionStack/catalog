@@ -1,0 +1,76 @@
+name: Upload Changed Modules
+
+on: 
+  push: 
+    branches:
+      - "main"
+
+jobs: 
+  get_changed_folders: 
+    runs-on: ubuntu-latest
+    outputs: 
+      changed_dirs: ${{ steps.find_dirs.outputs.changed_dirss }}
+    
+    steps: 
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Find Directories with 'kcl.mod' and 'src'
+        id: find_dirs
+        run: |
+          # Get changed files. 
+          dirs=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | awk -F'/' '{print $1}' | sort -u | uniq)
+
+          # Check current file tree. 
+          tree .
+
+          # Find directories containing 'kcl.mod' file and 'src' dir. 
+          matching_dirs=()
+          for dir in $(echo "$dirs" | tr '\n' ' '); do
+            echo "Checking $dir"
+            set +e
+            if [ -f "$dir/kcl.mod" ] && [ -d "$dir/src" ]; then
+              echo "Found $dir"
+              matching_dirs+=("$dir")
+            fi
+            set -e
+          done
+
+          # Print found changed module paths. 
+          echo "Found changed module paths: ${matching_dirs[@]}"
+          echo "changed_dirs=${matching_dirs[@]}" >> "$GITHUB_OUTPUT"
+
+  push_modules: 
+    needs: [ get_changed_folders ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Kusion CLI
+        run: curl https://www.kusionstack.io/scripts/install.sh | sh -s 0.12.0-rc.1
+
+      - name: Upload Modules
+        env: 
+          PACKAGE_TOKEN: '${{ secrets.PACKAGE_TOKEN }}'
+        run: |
+          # Get changed module directories. 
+          dirs_changed="${{ needs.get_changed_folders.outputs.changed_dirs }}"
+          echo "Changed modules paths: ${dirs_changed[@]}"
+
+          # Manually source the Kusion environment variables. 
+          source "$HOME/.kusion/.env"
+
+          # Push modules to the GitHub Packages. 
+          for dir in ${dirs_changed[@]}; do
+            cd $dir
+            kusion mod push . oci://ghcr.io/kusionstack --os-arch=darwin/amd64 --creds $PACKAGE_TOKEN --latest=true
+            kusion mod push . oci://ghcr.io/kusionstack --os-arch=darwin/arm64 --creds $PACKAGE_TOKEN --latest=true
+            kusion mod push . oci://ghcr.io/kusionstack --os-arch=linux/amd64 --creds $PACKAGE_TOKEN --latest=true
+            kusion mod push . oci://ghcr.io/kusionstack --os-arch=windows/amd64 --creds $PACKAGE_TOKEN --latest=true
+          done
