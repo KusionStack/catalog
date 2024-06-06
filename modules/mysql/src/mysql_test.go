@@ -10,20 +10,20 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestMySQLModule_Generator(t *testing.T) {
+	// TODO: set env for AWS & Alicloud Region.
 	r := &module.GeneratorRequest{
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &workload.Workload{
-			Header: workload.Header{
+		Workload: &apiv1.Workload{
+			Header: apiv1.Header{
 				Type: "Service",
 			},
-			Service: &workload.Service{},
+			Service: &apiv1.Service{},
 		},
 	}
 
@@ -113,8 +113,8 @@ func TestMySQLModule_Generator(t *testing.T) {
 	for _, tc := range testcases {
 		mysql := &MySQL{}
 		t.Run(tc.name, func(t *testing.T) {
-			r.DevModuleConfig = tc.devModuleConfig
-			r.PlatformModuleConfig = tc.platformConfig
+			r.DevConfig = tc.devModuleConfig
+			r.PlatformConfig = tc.platformConfig
 
 			res, err := mysql.Generate(context.Background(), r)
 			if tc.expectedErr != nil {
@@ -197,11 +197,11 @@ func TestMySQLModule_GenerateDBSecret(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &workload.Workload{
-			Header: workload.Header{
+		Workload: &apiv1.Workload{
+			Header: apiv1.Header{
 				Type: "Service",
 			},
-			Service: &workload.Service{},
+			Service: &apiv1.Service{},
 		},
 	}
 
@@ -287,11 +287,11 @@ func TestMySQLModule_GenerateTFRandomPassword(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &workload.Workload{
-			Header: workload.Header{
+		Workload: &apiv1.Workload{
+			Header: apiv1.Header{
 				Type: "Service",
 			},
-			Service: &workload.Service{},
+			Service: &apiv1.Service{},
 		},
 	}
 

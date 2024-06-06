@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -51,7 +51,7 @@ var (
 	defaultSize           int      = 10
 )
 
-var defaultRandomProviderCfg = apiv1.ProviderConfig{
+var defaultRandomProviderCfg = module.ProviderConfig{
 	Source:  "hashicorp/random",
 	Version: "3.6.0",
 }
@@ -92,14 +92,14 @@ func (postgres *PostgreSQL) Generate(_ context.Context, request *module.Generato
 	}()
 
 	// PostgreSQL does not exist in AppConfiguration and workspace configs.
-	if request.DevModuleConfig == nil {
+	if request.DevConfig == nil {
 		log.Info("PostgreSQL does not exist in AppConfig config")
 
 		return nil, nil
 	}
 
 	// Get the complete configs of the PostgreSQL instance.
-	err := postgres.GetCompleteConfig(request.DevModuleConfig, request.PlatformModuleConfig)
+	err := postgres.GetCompleteConfig(request.DevConfig, request.PlatformConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -111,25 +111,25 @@ func (postgres *PostgreSQL) Generate(_ context.Context, request *module.Generato
 
 	// Generate the PostgreSQL intance resources based on the type and the cloud provider config.
 	var resources []apiv1.Resource
-	var patchers []apiv1.Patcher
+	var patcher *apiv1.Patcher
 	var providerType string
 	switch strings.ToLower(postgres.Type) {
 	case LocalDBType:
-		resources, patchers, err = postgres.GenerateLocalResources(request)
+		resources, patcher, err = postgres.GenerateLocalResources(request)
 	case CloudDBType:
-		providerType, err = GetCloudProviderType(request.PlatformModuleConfig)
+		providerType, err = GetCloudProviderType(request.PlatformConfig)
 		if err != nil {
 			return nil, err
 		}
 
 		switch strings.ToLower(providerType) {
 		case "aws":
-			resources, patchers, err = postgres.GenerateAWSResources(request)
+			resources, patcher, err = postgres.GenerateAWSResources(request)
 			if err != nil {
 				return nil, err
 			}
 		case "alicloud":
-			resources, patchers, err = postgres.GenerateAlicloudResources(request)
+			resources, patcher, err = postgres.GenerateAlicloudResources(request)
 			if err != nil {
 				return nil, err
 			}
@@ -142,7 +142,7 @@ func (postgres *PostgreSQL) Generate(_ context.Context, request *module.Generato
 
 	return &module.GeneratorResponse{
 		Resources: resources,
-		Patchers:  patchers,
+		Patcher:   patcher,
 	}, nil
 }
 
@@ -310,12 +310,7 @@ func (postgres *PostgreSQL) GenerateTFRandomPassword(request *module.GeneratorRe
 		return nil, "", err
 	}
 
-	resExts, err := module.TerraformProviderExtensions(randomPasswordProvider, nil, randomPassword)
-	if err != nil {
-		return nil, "", err
-	}
-
-	resource, err := module.WrapTFResourceToKusionResource(id, resAttrs, resExts, nil)
+	resource, err := module.WrapTFResourceToKusionResource(randomPasswordProvider, randomPassword, id, resAttrs, nil)
 	if err != nil {
 		return nil, "", err
 	}

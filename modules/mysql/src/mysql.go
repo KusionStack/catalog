@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/workspace"
 )
@@ -49,7 +49,7 @@ var (
 	defaultSize           int      = 10
 )
 
-var defaultRandomProviderCfg = apiv1.ProviderConfig{
+var defaultRandomProviderCfg = module.ProviderConfig{
 	Source:  "hashicorp/random",
 	Version: "3.6.0",
 }
@@ -90,14 +90,14 @@ func (mysql *MySQL) Generate(_ context.Context, request *module.GeneratorRequest
 	}()
 
 	// MySQL does not exist in AppConfiguration configs.
-	if request.DevModuleConfig == nil {
+	if request.DevConfig == nil {
 		log.Info("MySQL does not exist in AppConfig config")
 
 		return nil, nil
 	}
 
 	// Get the complete configs of the MySQL instance.
-	err := mysql.GetCompleteConfig(request.DevModuleConfig, request.PlatformModuleConfig)
+	err := mysql.GetCompleteConfig(request.DevConfig, request.PlatformConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -109,25 +109,25 @@ func (mysql *MySQL) Generate(_ context.Context, request *module.GeneratorRequest
 
 	// Generate the MySQL intance resources based on the type and the cloud provider config.
 	var resources []apiv1.Resource
-	var patchers []apiv1.Patcher
+	var patcher *apiv1.Patcher
 	var providerType string
 	switch strings.ToLower(mysql.Type) {
 	case LocalDBType:
-		resources, patchers, err = mysql.GenerateLocalResources(request)
+		resources, patcher, err = mysql.GenerateLocalResources(request)
 	case CloudDBType:
-		providerType, err = GetCloudProviderType(request.PlatformModuleConfig)
+		providerType, err = GetCloudProviderType(request.PlatformConfig)
 		if err != nil {
 			return nil, err
 		}
 
 		switch strings.ToLower(providerType) {
 		case "aws":
-			resources, patchers, err = mysql.GenerateAWSResources(request)
+			resources, patcher, err = mysql.GenerateAWSResources(request)
 			if err != nil {
 				return nil, err
 			}
 		case "alicloud":
-			resources, patchers, err = mysql.GenerateAlicloudResources(request)
+			resources, patcher, err = mysql.GenerateAlicloudResources(request)
 			if err != nil {
 				return nil, err
 			}
@@ -140,7 +140,7 @@ func (mysql *MySQL) Generate(_ context.Context, request *module.GeneratorRequest
 
 	return &module.GeneratorResponse{
 		Resources: resources,
-		Patchers:  patchers,
+		Patcher:   patcher,
 	}, nil
 }
 
@@ -308,12 +308,7 @@ func (mysql *MySQL) GenerateTFRandomPassword(request *module.GeneratorRequest) (
 		return nil, "", err
 	}
 
-	resExts, err := module.TerraformProviderExtensions(randomPasswordProvider, nil, randomPassword)
-	if err != nil {
-		return nil, "", err
-	}
-
-	resource, err := module.WrapTFResourceToKusionResource(id, resAttrs, resExts, nil)
+	resource, err := module.WrapTFResourceToKusionResource(randomPasswordProvider, randomPassword, id, resAttrs, nil)
 	if err != nil {
 		return nil, "", err
 	}

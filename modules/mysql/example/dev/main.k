@@ -1,12 +1,12 @@
 # The configuration codes in perspective of developers. 
 import kam.v1.app_configuration as ac
-import kam.v1.workload as wl
-import kam.v1.workload.container as c
+import service
+import service.container as c
 import network as n
-import mysql.mysql
+import mysql
 
 quickstart: ac.AppConfiguration {
-    workload: wl.Service {
+    workload: service.Service {
         containers: {
             quickstart: c.Container {
                 image: "kusionstack/kusion-quickstart:latest"
