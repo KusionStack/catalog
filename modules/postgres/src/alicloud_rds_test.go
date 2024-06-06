@@ -7,7 +7,7 @@ import (
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestPostgreSQLModule_GenerateAlicloudResources(t *testing.T) {
@@ -15,11 +15,11 @@ func TestPostgreSQLModule_GenerateAlicloudResources(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &workload.Workload{
-			Header: workload.Header{
+		Workload: &v1.Workload{
+			Header: v1.Header{
 				Type: "Service",
 			},
-			Service: &workload.Service{},
+			Service: &v1.Service{},
 		},
 	}
 

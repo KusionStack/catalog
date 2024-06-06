@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 )
 
@@ -19,7 +19,7 @@ var (
 	alicloudRDSAccount   = "alicloud_rds_account"
 )
 
-var defaultAlicloudProviderCfg = apiv1.ProviderConfig{
+var defaultAlicloudProviderCfg = module.ProviderConfig{
 	Source:  "aliyun/alicloud",
 	Version: "1.209.1",
 }
@@ -32,9 +32,8 @@ type alicloudServerlessConfig struct {
 }
 
 // GenerateAlicloudResources generates Alicloud provided PostgreSQL database instance.
-func (postgres *PostgreSQL) GenerateAlicloudResources(request *module.GeneratorRequest) ([]apiv1.Resource, []apiv1.Patcher, error) {
+func (postgres *PostgreSQL) GenerateAlicloudResources(request *module.GeneratorRequest) ([]apiv1.Resource, *apiv1.Patcher, error) {
 	var resources []apiv1.Resource
-	var patchers []apiv1.Patcher
 
 	// Set the Alicloud provider with the default provider config.
 	alicloudProviderCfg := defaultAlicloudProviderCfg
@@ -103,14 +102,13 @@ func (postgres *PostgreSQL) GenerateAlicloudResources(request *module.GeneratorR
 		return nil, nil, err
 	}
 	resources = append(resources, *dbSecret)
-	patchers = append(patchers, *patcher)
 
-	return resources, patchers, nil
+	return resources, patcher, nil
 }
 
 // generateAlicloudDBInstance generates alicloud_db_instance resource
 // for the Alicloud provided PostgreSQL database instance.
-func (postgres *PostgreSQL) generateAlicloudDBInstance(alicloudProviderCfg apiv1.ProviderConfig,
+func (postgres *PostgreSQL) generateAlicloudDBInstance(alicloudProviderCfg module.ProviderConfig,
 	region string,
 ) (*apiv1.Resource, string, error) {
 	resAttrs := map[string]interface{}{
@@ -146,12 +144,8 @@ func (postgres *PostgreSQL) generateAlicloudDBInstance(alicloudProviderCfg apiv1
 		return nil, "", err
 	}
 
-	resExts, err := module.TerraformProviderExtensions(alicloudProviderCfg, map[string]any{"region": region}, alicloudDBInstance)
-	if err != nil {
-		return nil, "", err
-	}
-
-	resource, err := module.WrapTFResourceToKusionResource(id, resAttrs, resExts, nil)
+	alicloudProviderCfg.ProviderMeta = map[string]any{"region": region}
+	resource, err := module.WrapTFResourceToKusionResource(alicloudProviderCfg, alicloudDBInstance, id, resAttrs, nil)
 	if err != nil {
 		return nil, "", err
 	}
@@ -161,7 +155,7 @@ func (postgres *PostgreSQL) generateAlicloudDBInstance(alicloudProviderCfg apiv1
 
 // generateAlicloudDBConnection generates alicloud_db_connection resource
 // for the Alicloud provided PostgreSQL database instance.
-func (postgres *PostgreSQL) generateAlicloudDBConnection(alicloudProviderCfg apiv1.ProviderConfig,
+func (postgres *PostgreSQL) generateAlicloudDBConnection(alicloudProviderCfg module.ProviderConfig,
 	region, dbInstanceID string,
 ) (*apiv1.Resource, string, error) {
 	resAttrs := map[string]interface{}{
@@ -174,12 +168,8 @@ func (postgres *PostgreSQL) generateAlicloudDBConnection(alicloudProviderCfg api
 		return nil, "", err
 	}
 
-	resExts, err := module.TerraformProviderExtensions(alicloudProviderCfg, map[string]any{"region": region}, alicloudDBConnection)
-	if err != nil {
-		return nil, "", err
-	}
-
-	resource, err := module.WrapTFResourceToKusionResource(id, resAttrs, resExts, nil)
+	alicloudProviderCfg.ProviderMeta = map[string]any{"region": region}
+	resource, err := module.WrapTFResourceToKusionResource(alicloudProviderCfg, alicloudDBConnection, id, resAttrs, nil)
 	if err != nil {
 		return nil, "", err
 	}
@@ -189,7 +179,7 @@ func (postgres *PostgreSQL) generateAlicloudDBConnection(alicloudProviderCfg api
 
 // generateAlicloudRDSAccount generates alicloud_rds_account resource
 // for the Alicloud provided PostgreSQL database instance.
-func (postgres *PostgreSQL) generateAlicloudRDSAccount(alicloudProviderCfg apiv1.ProviderConfig,
+func (postgres *PostgreSQL) generateAlicloudRDSAccount(alicloudProviderCfg module.ProviderConfig,
 	region, accountName, randomPasswordID, dbInstanceID string,
 ) (*apiv1.Resource, error) {
 	resAttrs := map[string]interface{}{
@@ -204,12 +194,8 @@ func (postgres *PostgreSQL) generateAlicloudRDSAccount(alicloudProviderCfg apiv1
 		return nil, err
 	}
 
-	resExts, err := module.TerraformProviderExtensions(alicloudProviderCfg, map[string]any{"region": region}, alicloudRDSAccount)
-	if err != nil {
-		return nil, err
-	}
-
-	resource, err := module.WrapTFResourceToKusionResource(id, resAttrs, resExts, nil)
+	alicloudProviderCfg.ProviderMeta = map[string]any{"region": region}
+	resource, err := module.WrapTFResourceToKusionResource(alicloudProviderCfg, alicloudRDSAccount, id, resAttrs, nil)
 	if err != nil {
 		return nil, err
 	}

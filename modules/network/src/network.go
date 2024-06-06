@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/modules"
 	"kusionstack.io/kusion/pkg/workspace"
@@ -90,14 +90,14 @@ func (network *Network) Generate(_ context.Context, request *module.GeneratorReq
 	}()
 
 	// Network does not exist in AppConfiguration configs.
-	if request.DevModuleConfig == nil {
+	if request.DevConfig == nil {
 		log.Info("Network does not exist in AppConfig config")
 
 		return nil, nil
 	}
 
 	// Get the complete configs of the Network accessory.
-	if err := network.GetCompleteConfig(request.DevModuleConfig, request.PlatformModuleConfig); err != nil {
+	if err := network.GetCompleteConfig(request.DevConfig, request.PlatformConfig); err != nil {
 		return nil, err
 	}
 	if len(network.Ports) != 0 && request.Workload.Service == nil {

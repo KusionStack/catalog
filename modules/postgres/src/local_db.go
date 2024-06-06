@@ -11,13 +11,12 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 // GenerateLocalResources generates the resources of locally deployed PostgreSQL database instance.
-func (postgres *PostgreSQL) GenerateLocalResources(request *module.GeneratorRequest) ([]apiv1.Resource, []apiv1.Patcher, error) {
+func (postgres *PostgreSQL) GenerateLocalResources(request *module.GeneratorRequest) ([]apiv1.Resource, *apiv1.Patcher, error) {
 	var resources []apiv1.Resource
-	var patchers []apiv1.Patcher
 
 	// Build Kubernetes Secret for the random password of the local PostgreSQL instance.
 	password := postgres.generateLocalPassword(request)
@@ -55,9 +54,8 @@ func (postgres *PostgreSQL) GenerateLocalResources(request *module.GeneratorRequ
 		return nil, nil, err
 	}
 	resources = append(resources, *dbSecret)
-	patchers = append(patchers, *patcher)
 
-	return resources, patchers, nil
+	return resources, patcher, nil
 }
 
 // generateLocalSecret generates the Kubernetes Secret resource for the local PostgreSQL instance.

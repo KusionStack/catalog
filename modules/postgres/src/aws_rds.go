@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 )
 
@@ -18,7 +18,7 @@ var (
 	awsDBInstance    = "aws_db_instance"
 )
 
-var defaultAWSProviderCfg = apiv1.ProviderConfig{
+var defaultAWSProviderCfg = module.ProviderConfig{
 	Source:  "hashicorp/aws",
 	Version: "5.0.1",
 }
@@ -36,9 +36,8 @@ type awsSecurityGroupTraffic struct {
 }
 
 // GenerateAWSResources generates the AWS provided PostgreSQL database instance.
-func (postgres *PostgreSQL) GenerateAWSResources(request *module.GeneratorRequest) ([]apiv1.Resource, []apiv1.Patcher, error) {
+func (postgres *PostgreSQL) GenerateAWSResources(request *module.GeneratorRequest) ([]apiv1.Resource, *apiv1.Patcher, error) {
 	var resources []apiv1.Resource
-	var patchers []apiv1.Patcher
 
 	// Set the AWS provider with the default provider config.
 	awsProviderCfg := defaultAWSProviderCfg
@@ -83,13 +82,12 @@ func (postgres *PostgreSQL) GenerateAWSResources(request *module.GeneratorReques
 		return nil, nil, err
 	}
 	resources = append(resources, *dbSecret)
-	patchers = append(patchers, *patcher)
 
-	return resources, patchers, nil
+	return resources, patcher, nil
 }
 
 // generateAWSSecurityGroup generates aws_security_group resource for the AWS provided PostgreSQL database instance.
-func (postgres *PostgreSQL) generateAWSSecurityGroup(awsProviderCfg apiv1.ProviderConfig, region string) (*apiv1.Resource, string, error) {
+func (postgres *PostgreSQL) generateAWSSecurityGroup(awsProviderCfg module.ProviderConfig, region string) (*apiv1.Resource, string, error) {
 	// SecurityIPs should be in the format of IP address or Classes Inter-Domain
 	// Routing (CIDR) mode.
 	for _, ip := range postgres.SecurityIPs {
@@ -122,12 +120,8 @@ func (postgres *PostgreSQL) generateAWSSecurityGroup(awsProviderCfg apiv1.Provid
 		return nil, "", err
 	}
 
-	resExts, err := module.TerraformProviderExtensions(awsProviderCfg, map[string]any{"region": region}, awsSecurityGroup)
-	if err != nil {
-		return nil, "", err
-	}
-
-	resource, err := module.WrapTFResourceToKusionResource(id, resAttrs, resExts, nil)
+	awsProviderCfg.ProviderMeta = map[string]any{"region": region}
+	resource, err := module.WrapTFResourceToKusionResource(awsProviderCfg, awsSecurityGroup, id, resAttrs, nil)
 	if err != nil {
 		return nil, "", err
 	}
@@ -136,7 +130,7 @@ func (postgres *PostgreSQL) generateAWSSecurityGroup(awsProviderCfg apiv1.Provid
 }
 
 // generateAWSDBInstance generates aws_db_instance resource for the AWS provided PostgreSQL database instance.
-func (postgres *PostgreSQL) generateAWSDBInstance(awsProviderCfg apiv1.ProviderConfig, region, randomPasswordID, awsSecurityGroupID string) (*apiv1.Resource, string, error) {
+func (postgres *PostgreSQL) generateAWSDBInstance(awsProviderCfg module.ProviderConfig, region, randomPasswordID, awsSecurityGroupID string) (*apiv1.Resource, string, error) {
 	resAttrs := map[string]interface{}{
 		"allocated_storage":   postgres.Size,
 		"engine":              dbEngine,
@@ -161,12 +155,8 @@ func (postgres *PostgreSQL) generateAWSDBInstance(awsProviderCfg apiv1.ProviderC
 		return nil, "", err
 	}
 
-	resExts, err := module.TerraformProviderExtensions(awsProviderCfg, map[string]any{"region": region}, awsDBInstance)
-	if err != nil {
-		return nil, "", err
-	}
-
-	resource, err := module.WrapTFResourceToKusionResource(id, resAttrs, resExts, nil)
+	awsProviderCfg.ProviderMeta = map[string]any{"region": region}
+	resource, err := module.WrapTFResourceToKusionResource(awsProviderCfg, awsDBInstance, id, resAttrs, nil)
 	if err != nil {
 		return nil, "", err
 	}

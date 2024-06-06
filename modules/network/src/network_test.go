@@ -6,8 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestNetworkModule_Generator(t *testing.T) {
@@ -15,11 +14,11 @@ func TestNetworkModule_Generator(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &workload.Workload{
-			Header: workload.Header{
+		Workload: &apiv1.Workload{
+			Header: apiv1.Header{
 				Type: "Service",
 			},
-			Service: &workload.Service{},
+			Service: &apiv1.Service{},
 		},
 	}
 
@@ -68,8 +67,8 @@ func TestNetworkModule_Generator(t *testing.T) {
 	for _, tc := range testcases {
 		network := &Network{}
 		t.Run(tc.name, func(t *testing.T) {
-			r.DevModuleConfig = tc.devModuleConfig
-			r.PlatformModuleConfig = tc.platformModuleConfig
+			r.DevConfig = tc.devModuleConfig
+			r.PlatformConfig = tc.platformModuleConfig
 
 			res, err := network.Generate(context.Background(), r)
 			if tc.expectedErr != nil {
