@@ -53,7 +53,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Kusion CLI
-        run: curl https://www.kusionstack.io/scripts/install.sh | sh -s 0.12.0-rc.1
+        run: curl https://www.kusionstack.io/scripts/install.sh | sh -s 0.12.0-rc.3
 
       - name: Upload Modules
         env: 
