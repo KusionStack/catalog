@@ -1,0 +1,10 @@
+modules:
+  service:
+    default:
+      type: CollaSet
+  opsrule: 
+    path: oci://ghcr.io/kusionstack/opsrule
+    version: 0.1.0
+    configs: 
+      default: 
+        maxUnavailable: 30%

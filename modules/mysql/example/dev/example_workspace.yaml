@@ -1,4 +1,4 @@
 modules: 
-  kusionstack/mysql@0.1.0: 
-    default: 
-      databaseName: test-database
+  mysql: 
+    path: oci://ghcr.io/kusionstack/mysql
+    version: 0.2.0

@@ -1,7 +1,0 @@
-modules:
-  service:
-    default:
-      type: CollaSet
-  kusionstack/opsrule@0.1.0:
-    default:
-      maxUnavailable: 30%
