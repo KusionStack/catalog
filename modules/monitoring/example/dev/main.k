@@ -1,11 +1,11 @@
 import kam.v1.app_configuration as ac
-import kam.v1.workload as wl
-import kam.v1.workload.container as c
+import service
+import service.container as c
 import monitoring as m
 
 # base.k declares reusable configurations for all stacks.
 prometheus: ac.AppConfiguration {
-    workload: wl.Service {
+    workload: service.Service {
         containers: {
             nginx: c.Container {
                 image: "nginx:v1"
