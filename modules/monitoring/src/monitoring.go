@@ -11,23 +11,22 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/modules"
 )
 
 func (g *MonitoringModule) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
-
 	// Monitoring does not exist in AppConfig and workspace config
-	if request.DevModuleConfig == nil && request.PlatformModuleConfig == nil {
+	if request.DevConfig == nil && request.PlatformConfig == nil {
 		log.Info("Monitoring does not exist in either AppConfig and workspace config")
 		return nil, nil
 	}
 
-	log.Debug("request.DevModuleConfig: ", request.DevModuleConfig)
-	log.Debug("request.PlatformModuleConfig: ", request.PlatformModuleConfig)
+	log.Debug("request.DevModuleConfig: ", request.DevConfig)
+	log.Debug("request.PlatformModuleConfig: ", request.PlatformConfig)
 	// Parse workspace configurations for monitoring generator.
-	if err := g.parseWorkspaceConfig(request.DevModuleConfig, request.PlatformModuleConfig); err != nil {
+	if err := g.parseWorkspaceConfig(request.DevConfig, request.PlatformConfig); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +51,7 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 			}
 			return &module.GeneratorResponse{
 				Resources: []v1.Resource{*resource},
-				Patchers:  []v1.Patcher{*patcher},
+				Patcher:   patcher,
 			}, nil
 		} else if g.MonitorType == PodMonitorType {
 			// Create PodMonitor if MonitorType is Pod
@@ -72,7 +71,7 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 			}
 			return &module.GeneratorResponse{
 				Resources: []v1.Resource{*resource},
-				Patchers:  []v1.Patcher{*patcher},
+				Patcher:   patcher,
 			}, nil
 		} else {
 			return nil, fmt.Errorf("MonitorType should either be service or pod %s", g.MonitorType)
@@ -91,7 +90,7 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 			Annotations: annotations,
 		}
 		return &module.GeneratorResponse{
-			Patchers: []v1.Patcher{*patchers},
+			Patcher: patchers,
 		}, nil
 	}
 }

@@ -1,15 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"context"
-
-	apiv1 "kusionstack.io/kusion/pkg/apis/core/v1"
+	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/modules"
 
 	"kusionstack.io/kusion-module-framework/pkg/module"
@@ -37,7 +36,7 @@ func BuildMonitoringTestCase(
 		endpointType = "podMetricsEndpoints"
 	}
 	var expectedResources []apiv1.Resource
-	var expectedPatchers []apiv1.Patcher
+	var expectedPatcher apiv1.Patcher
 	uniqueName := modules.UniqueAppName(projectName, stackName, appName)
 	if operatorMode {
 		expectedResources = []apiv1.Resource{
@@ -79,16 +78,13 @@ func BuildMonitoringTestCase(
 				},
 			},
 		}
-
 	} else {
-		expectedPatchers = []apiv1.Patcher{
-			{
-				Annotations: map[string]string{
-					"prometheus.io/scrape": "true",
-					"prometheus.io/path":   path,
-					"prometheus.io/port":   port,
-					"prometheus.io/scheme": scheme,
-				},
+		expectedPatcher = apiv1.Patcher{
+			Annotations: map[string]string{
+				"prometheus.io/scrape": "true",
+				"prometheus.io/path":   path,
+				"prometheus.io/port":   port,
+				"prometheus.io/scheme": scheme,
 			},
 		}
 	}
@@ -98,21 +94,21 @@ func BuildMonitoringTestCase(
 			Project: projectName,
 			Stack:   stackName,
 			App:     appName,
-			PlatformModuleConfig: apiv1.GenericConfig{
+			PlatformConfig: apiv1.GenericConfig{
 				TimeoutKey:      timeout,
 				IntervalKey:     interval,
 				SchemeKey:       scheme,
 				OperatorModeKey: operatorMode,
 				MonitorTypeKey:  monitorType,
 			},
-			DevModuleConfig: apiv1.Accessory{
+			DevConfig: apiv1.Accessory{
 				PathKey: path,
 				PortKey: port,
 			},
 		},
 		want: &module.GeneratorResponse{
 			Resources: expectedResources,
-			Patchers:  expectedPatchers,
+			Patcher:   &expectedPatcher,
 		},
 		wantErr: wantErr,
 	}
@@ -138,7 +134,8 @@ func TestMonitoringGenerator_Generate(t *testing.T) {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr {
-				require.Equal(t, tt.want, response)
+				require.Equal(t, tt.want.Resources, response.Resources)
+				require.Equal(t, *tt.want.Patcher, *response.Patcher)
 			}
 		})
 	}

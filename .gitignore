@@ -22,3 +22,6 @@ kusion_state.yaml
 
 # local bin files
 modules/bin/
+
+# kcl mod lock files
+kcl.mod.lock

@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
+	"gopkg.in/yaml.v2"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestOpsRuleModule_Generate(t *testing.T) {
@@ -72,17 +72,17 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 		},
 	}
 
-	jobWorkloadConfig := &workload.Workload{
-		Header: workload.Header{
-			Type: workload.TypeJob,
+	jobWorkloadConfig := &v1.Workload{
+		Header: v1.Header{
+			Type: v1.TypeJob,
 		},
 	}
-	serviceWorkloadConfig := &workload.Workload{
-		Header: workload.Header{
-			Type: workload.TypeService,
+	serviceWorkloadConfig := &v1.Workload{
+		Header: v1.Header{
+			Type: v1.TypeService,
 		},
-		Service: &workload.Service{
-			Type: workload.Collaset,
+		Service: &v1.Service{
+			Type: v1.Collaset,
 		},
 	}
 	devConfig := map[string]interface{}{
@@ -116,13 +116,12 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 			name: "test Job",
 			args: args{
 				r: &module.GeneratorRequest{
-					Project:              project,
-					Stack:                stack,
-					App:                  app,
-					Workload:             jobWorkloadConfig,
-					DevModuleConfig:      devConfig,
-					PlatformModuleConfig: platformConfig,
-					RuntimeConfig:        nil,
+					Project:        project,
+					Stack:          stack,
+					App:            app,
+					Workload:       jobWorkloadConfig,
+					DevConfig:      devConfig,
+					PlatformConfig: platformConfig,
 				},
 			},
 			want: nil,
@@ -131,12 +130,12 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 			name: "test CollaSet with opsRule in appConfig",
 			args: args{
 				r: &module.GeneratorRequest{
-					Project:              project,
-					Stack:                stack,
-					App:                  app,
-					Workload:             serviceWorkloadConfig,
-					DevModuleConfig:      devConfig,
-					PlatformModuleConfig: platformConfig,
+					Project:        project,
+					Stack:          stack,
+					App:            app,
+					Workload:       serviceWorkloadConfig,
+					DevConfig:      devConfig,
+					PlatformConfig: platformConfig,
 				},
 			},
 			wantErr: false,
@@ -146,11 +145,11 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 			name: "test CollaSet with opsRule in workspace",
 			args: args{
 				r: &module.GeneratorRequest{
-					Project:              project,
-					Stack:                stack,
-					App:                  app,
-					Workload:             serviceWorkloadConfig,
-					PlatformModuleConfig: platformConfig,
+					Project:        project,
+					Stack:          stack,
+					App:            app,
+					Workload:       serviceWorkloadConfig,
+					PlatformConfig: platformConfig,
 				},
 			},
 			wantErr: false,

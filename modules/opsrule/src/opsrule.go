@@ -10,29 +10,27 @@ import (
 	"kusionstack.io/kube-api/apps/v1alpha1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	v1 "kusionstack.io/kusion/pkg/apis/core/v1"
-	"kusionstack.io/kusion/pkg/apis/core/v1/workload"
+	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 	"kusionstack.io/kusion/pkg/log"
 )
 
 type OpsRuleModule struct{}
 
 func (o *OpsRuleModule) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
-
 	// opsRule does not exist in AppConfig and workspace config
-	if request.DevModuleConfig == nil && request.PlatformModuleConfig == nil {
+	if request.DevConfig == nil && request.PlatformConfig == nil {
 		log.Info("OpsRule does not exist in AppConfig and workspace config")
 		return nil, nil
 	}
 
 	// Job does not support maxUnavailable
-	if request.Workload.Header.Type == workload.TypeJob {
+	if request.Workload.Header.Type == v1.TypeJob {
 		log.Infof("Job does not support opsRule")
 		return nil, nil
 	}
 
-	if request.Workload.Service.Type == workload.Collaset {
-		maxUnavailable, err := GetMaxUnavailable(request.DevModuleConfig, request.PlatformModuleConfig)
+	if request.Workload.Service.Type == v1.Collaset {
+		maxUnavailable, err := GetMaxUnavailable(request.DevConfig, request.PlatformConfig)
 		if err != nil {
 			return nil, err
 		}
