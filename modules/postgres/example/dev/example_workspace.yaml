@@ -1,0 +1,4 @@
+modules: 
+  postgres: 
+    path: oci://ghcr.io/kusionstack/postgres
+    version: 0.2.0
