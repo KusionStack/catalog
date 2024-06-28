@@ -13,7 +13,7 @@ Note:
 2. Please create an issue first to describe the problem.
 
     We recommend that link the issue with the PR in the following question.
-    For more info, check https://kusionstack.io/docs/governance/contribute/
+    For more info, check https://www.kusionstack.io/community/intro/
 -->
 
 ## What type of PR is this?

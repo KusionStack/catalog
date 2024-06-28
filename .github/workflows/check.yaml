@@ -4,11 +4,6 @@ name: Check
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
-    branches:
-    - main
-  push:
-    branches:
-    - main
 jobs:
   # Lints Pull Request commits with commitlint.
   #
