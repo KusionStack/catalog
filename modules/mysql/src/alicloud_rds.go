@@ -63,21 +63,6 @@ func (mysql *MySQL) GenerateAlicloudResources(request *module.GeneratorRequest) 
 	}
 	resources = append(resources, *alicloudDBInstanceRes)
 
-	// Build alicloud_db_connection resource.
-	var alicloudDBConnectionRes *apiv1.Resource
-	var alicloudDBConnectionID string
-	if IsPublicAccessible(mysql.SecurityIPs) {
-		alicloudDBConnectionRes, alicloudDBConnectionID, err = mysql.generateAlicloudDBConnection(
-			alicloudProviderCfg,
-			region, alicloudDBInstanceID,
-		)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		resources = append(resources, *alicloudDBConnectionRes)
-	}
-
 	// Build alicloud_rds_account resuorce.
 	alicloudRDSAccountRes, err := mysql.generateAlicloudRDSAccount(
 		alicloudProviderCfg,
@@ -87,6 +72,21 @@ func (mysql *MySQL) GenerateAlicloudResources(request *module.GeneratorRequest) 
 		return nil, nil, err
 	}
 	resources = append(resources, *alicloudRDSAccountRes)
+
+	// Build alicloud_db_connection resource.
+	var alicloudDBConnectionRes *apiv1.Resource
+	var alicloudDBConnectionID string
+	if IsPublicAccessible(mysql.SecurityIPs) {
+		alicloudDBConnectionRes, alicloudDBConnectionID, err = mysql.generateAlicloudDBConnection(
+			alicloudProviderCfg,
+			region, alicloudDBInstanceID, alicloudRDSAccountRes.ID,
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		resources = append(resources, *alicloudDBConnectionRes)
+	}
 
 	hostAddress := modules.KusionPathDependency(alicloudDBInstanceID, "connection_string")
 	if !mysql.PrivateRouting {
@@ -156,7 +156,7 @@ func (mysql *MySQL) generateAlicloudDBInstance(alicloudProviderCfg module.Provid
 // generateAlicloudDBConnection generates alicloud_db_connection resource
 // for the Alicloud provided MySQL database instance.
 func (mysql *MySQL) generateAlicloudDBConnection(alicloudProviderCfg module.ProviderConfig,
-	region, dbInstanceID string,
+	region, dbInstanceID, rdsAccountID string,
 ) (*apiv1.Resource, string, error) {
 	resAttrs := map[string]interface{}{
 		"instance_id": modules.KusionPathDependency(dbInstanceID, "id"),
@@ -172,6 +172,9 @@ func (mysql *MySQL) generateAlicloudDBConnection(alicloudProviderCfg module.Prov
 	if err != nil {
 		return nil, "", err
 	}
+
+	// Add resource dependencies.
+	resource.DependsOn = append(resource.DependsOn, rdsAccountID)
 
 	return resource, id, nil
 }
