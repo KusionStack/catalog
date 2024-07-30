@@ -63,21 +63,6 @@ func (postgres *PostgreSQL) GenerateAlicloudResources(request *module.GeneratorR
 	}
 	resources = append(resources, *alicloudDBInstanceRes)
 
-	// Build alicloud_db_connection resource.
-	var alicloudDBConnectionRes *apiv1.Resource
-	var alicloudDBConnectionID string
-	if IsPublicAccessible(postgres.SecurityIPs) {
-		alicloudDBConnectionRes, alicloudDBConnectionID, err = postgres.generateAlicloudDBConnection(
-			alicloudProviderCfg,
-			region, alicloudDBInstanceID,
-		)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		resources = append(resources, *alicloudDBConnectionRes)
-	}
-
 	// Build alicloud_rds_account resuorce.
 	alicloudRDSAccountRes, err := postgres.generateAlicloudRDSAccount(
 		alicloudProviderCfg,
@@ -87,6 +72,21 @@ func (postgres *PostgreSQL) GenerateAlicloudResources(request *module.GeneratorR
 		return nil, nil, err
 	}
 	resources = append(resources, *alicloudRDSAccountRes)
+
+	// Build alicloud_db_connection resource.
+	var alicloudDBConnectionRes *apiv1.Resource
+	var alicloudDBConnectionID string
+	if IsPublicAccessible(postgres.SecurityIPs) {
+		alicloudDBConnectionRes, alicloudDBConnectionID, err = postgres.generateAlicloudDBConnection(
+			alicloudProviderCfg,
+			region, alicloudDBInstanceID, alicloudRDSAccountRes.ID,
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		resources = append(resources, *alicloudDBConnectionRes)
+	}
 
 	hostAddress := modules.KusionPathDependency(alicloudDBInstanceID, "connection_string")
 	if !postgres.PrivateRouting {
@@ -156,7 +156,7 @@ func (postgres *PostgreSQL) generateAlicloudDBInstance(alicloudProviderCfg modul
 // generateAlicloudDBConnection generates alicloud_db_connection resource
 // for the Alicloud provided PostgreSQL database instance.
 func (postgres *PostgreSQL) generateAlicloudDBConnection(alicloudProviderCfg module.ProviderConfig,
-	region, dbInstanceID string,
+	region, dbInstanceID, rdsAccountID string,
 ) (*apiv1.Resource, string, error) {
 	resAttrs := map[string]interface{}{
 		"instance_id": modules.KusionPathDependency(dbInstanceID, "id"),
@@ -173,6 +173,9 @@ func (postgres *PostgreSQL) generateAlicloudDBConnection(alicloudProviderCfg mod
 	if err != nil {
 		return nil, "", err
 	}
+
+	// Add resource dependencies.
+	resource.DependsOn = append(resource.DependsOn, rdsAccountID)
 
 	return resource, id, nil
 }
