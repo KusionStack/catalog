@@ -149,7 +149,7 @@ func (svc *Service) Generate(_ context.Context, request *module.GeneratorRequest
 	response := module.GeneratorResponse{
 		Resources: res,
 	}
-	log.Debugf("response: %v", response)
+
 	return &response, nil
 }
 
