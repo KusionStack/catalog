@@ -1,0 +1,9 @@
+# The configuration items in perspective of platform engineers. 
+modules: 
+  k8s-manifest: 
+    path: oci://ghcr.io/kusionstack/k8s-manifest
+    version: 0.1.0-beta
+    configs: 
+      default: 
+        paths: 
+          - ./test.yaml
