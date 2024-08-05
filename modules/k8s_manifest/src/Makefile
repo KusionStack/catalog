@@ -1,7 +1,7 @@
 TEST?=$$(go list ./... | grep -v 'vendor')
 ###### chang variables below according to your own modules ###
 NAMESPACE=kusionstack
-NAME=k8s-manifest
+NAME=k8s_manifest
 VERSION=0.1.0-beta
 BINARY=../bin/kusion-module-${NAME}_${VERSION}
 
