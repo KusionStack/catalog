@@ -3,7 +3,7 @@ import k8s_manifest
 
 test: ac.AppConfiguration {
     accessories: {
-        "k8s-manifests": k8s_manifest.K8sManifest {
+        "k8s_manifests": k8s_manifest.K8sManifest {
             paths: [
                 "./test.yaml"
             ]

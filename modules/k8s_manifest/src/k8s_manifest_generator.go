@@ -20,7 +20,9 @@ import (
 var FileExtensions = []string{".yaml", ".yml", ".json"}
 
 func main() {
-	server.Start(&K8sManifest{})
+	server.Start(&K8sManifest{
+		MergedPaths: make(map[string]bool),
+	})
 }
 
 // K8sManifest implements the Kusion Module generator interface.
@@ -32,17 +34,17 @@ type K8sManifest struct {
 	MergedPaths map[string]bool `yaml:"mergedPaths,omitempty" json:"mergedPaths,omitempty"`
 }
 
-// Generate implements the generation logic of k8s-manifest module, which
+// Generate implements the generation logic of k8s_manifest module, which
 // changes the raw K8s manifests into the Kusion Resources.
 func (k *K8sManifest) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Debugf("failed to generate k8s-manifest module: %v", r)
+			log.Debugf("failed to generate k8s_manifest module: %v", r)
 		}
 	}()
 
 	if err := k.CompleteConfig(request.DevConfig, request.PlatformConfig); err != nil {
-		log.Debugf("failed to get complete k8s-manifest module configs: %v", err)
+		log.Debugf("failed to get complete k8s_manifest module configs: %v", err)
 		return nil, err
 	}
 
@@ -91,7 +93,17 @@ func (k *K8sManifest) Generate(_ context.Context, request *module.GeneratorReque
 			metadata := obj.(map[string]interface{})["metadata"].(map[string]interface{})
 			name := metadata["name"].(string)
 
-			kusionID := apiVersion + ":" + kind + ":" + name
+			var namespace string
+			if ns, ok := metadata["namespace"]; ok {
+				namespace = ns.(string)
+			}
+
+			var kusionID string
+			if namespace == "" {
+				kusionID = apiVersion + ":" + kind + ":" + name
+			} else {
+				kusionID = apiVersion + ":" + kind + ":" + namespace + ":" + name
+			}
 
 			resources = append(resources, apiv1.Resource{
 				ID:         kusionID,
@@ -146,7 +158,7 @@ func ignoreFile(path string, extensions []string) bool {
 	return true
 }
 
-// CompleteConfig completes the k8s-manifest module configs with both devModuleConfig and platformModuleConfig.
+// CompleteConfig completes the k8s_manifest module configs with both devModuleConfig and platformModuleConfig.
 func (k *K8sManifest) CompleteConfig(devConfig apiv1.Accessory, platformConfig apiv1.GenericConfig) error {
 	// Retrieve the config items the developers are concerned about.
 	if devConfig != nil {
@@ -188,7 +200,7 @@ func (k *K8sManifest) CompleteConfig(devConfig apiv1.Accessory, platformConfig a
 	return nil
 }
 
-// ValidateConfig validates the completed k8s-manifest module configs are valid or not.
+// ValidateConfig validates the completed k8s_manifest module configs are valid or not.
 func (k *K8sManifest) ValidateConfig() error {
 	if len(k.MergedPaths) == 0 {
 		return errors.New("k8s manifest paths should not be empty")

@@ -15,9 +15,9 @@ schema K8sManifest:
         "k8s_manifest": k8s_manifest.K8sManifest {
             paths: [
                 # The path of a YAML file. 
-                "/path/to/my/k8s-manifest.yaml", 
+                "/path/to/my/k8s_manifest.yaml", 
                 # The path of a directory containing K8s manifests. 
-                "/dir/to/my/k8s-manifests"
+                "/dir/to/my/k8s_manifests"
             ]
         }
     }
