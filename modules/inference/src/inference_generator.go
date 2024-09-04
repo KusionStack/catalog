@@ -208,8 +208,8 @@ func (infer *Inference) generatePodSpec(_ *module.GeneratorRequest) (v1.PodSpec,
 	var mountPath string
 	var modelPullCmd []string
 	var containerPort int32
-	switch infer.Framework {
-	case "ollama":
+	switch strings.ToLower(infer.Framework) {
+	case OllamaType:
 		mountPath = "/root/.ollama"
 
 		var builder strings.Builder
