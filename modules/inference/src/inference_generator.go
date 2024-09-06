@@ -30,7 +30,7 @@ var (
 	inferDeploymentSuffix = "-infer-deployment"
 	inferStorageSuffix    = "-infer-storage"
 	inferServiceSuffix    = "-infer-service"
-	inferPortSuffix       = "-infer-port"
+	inferPortSuffix       = "-port"
 	inferContainerSuffix  = "-infer-container"
 )
 
