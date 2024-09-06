@@ -10,6 +10,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
 	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
@@ -29,6 +30,8 @@ var (
 	inferDeploymentSuffix = "-infer-deployment"
 	inferStorageSuffix    = "-infer-storage"
 	inferServiceSuffix    = "-infer-service"
+	inferPortSuffix       = "-infer-port"
+	inferContainerSuffix  = "-infer-container"
 )
 
 var (
@@ -40,11 +43,16 @@ var (
 )
 
 var (
+	CalledPort = 80
+	OllamaPort = 11434
+)
+
+var (
 	OllamaType = "ollama"
 )
 
 var (
-	OllamaImage = "ollama"
+	OllamaImage = "ollama/ollama"
 )
 
 func main() {
@@ -232,10 +240,13 @@ func (infer *Inference) generatePodSpec(_ *module.GeneratorRequest) (v1.PodSpec,
 
 		var commandParts []string
 		commandParts = append(commandParts, fmt.Sprintf("echo %s > Modelfile", builder.String()))
+		commandParts = append(commandParts, "ollama serve & OLLAMA_SERVE_PID=$!")
+		commandParts = append(commandParts, "sleep 5")
 		commandParts = append(commandParts, fmt.Sprintf("ollama create %s -f Modelfile", infer.Model))
+		commandParts = append(commandParts, "wait $OLLAMA_SERVE_PID")
 
 		modelPullCmd = append(modelPullCmd, "/bin/sh", "-c", strings.Join(commandParts, " && "))
-		containerPort = 11434
+		containerPort = int32(OllamaPort)
 	default:
 	}
 
@@ -243,7 +254,7 @@ func (infer *Inference) generatePodSpec(_ *module.GeneratorRequest) (v1.PodSpec,
 
 	volumes := []v1.Volume{
 		{
-			Name: infer.Framework + inferStorageSuffix,
+			Name: strings.ToLower(infer.Framework) + inferStorageSuffix,
 			VolumeSource: v1.VolumeSource{
 				EmptyDir: &v1.EmptyDirVolumeSource{},
 			},
@@ -252,14 +263,14 @@ func (infer *Inference) generatePodSpec(_ *module.GeneratorRequest) (v1.PodSpec,
 
 	volumeMounts := []v1.VolumeMount{
 		{
-			Name:      infer.Framework + inferStorageSuffix,
+			Name:      strings.ToLower(infer.Framework) + inferStorageSuffix,
 			MountPath: mountPath,
 		},
 	}
 
 	ports := []v1.ContainerPort{
 		{
-			Name:          infer.Framework,
+			Name:          strings.ToLower(infer.Framework) + inferPortSuffix,
 			ContainerPort: containerPort,
 		},
 	}
@@ -267,7 +278,7 @@ func (infer *Inference) generatePodSpec(_ *module.GeneratorRequest) (v1.PodSpec,
 	podSpec := v1.PodSpec{
 		Containers: []v1.Container{
 			{
-				Name:         infer.Framework,
+				Name:         strings.ToLower(infer.Framework) + inferContainerSuffix,
 				Image:        image,
 				Ports:        ports,
 				Command:      modelPullCmd,
@@ -294,7 +305,7 @@ func (infer *Inference) generateDeployment(request *module.GeneratorRequest) (*a
 			APIVersion: appsv1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      infer.Framework + inferDeploymentSuffix,
+			Name:      strings.ToLower(infer.Framework) + inferDeploymentSuffix,
 			Namespace: request.Project,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -322,10 +333,14 @@ func (infer *Inference) generateDeployment(request *module.GeneratorRequest) (*a
 // generateService generates the Kubernetes Service resource for the Inference instance.
 func (infer *Inference) generateService(request *module.GeneratorRequest) (*apiv1.Resource, string, error) {
 	// Prepare the service port for the Inference instance.
-	svcName := infer.Framework + inferServiceSuffix
+	svcName := strings.ToLower(infer.Framework) + inferServiceSuffix
 	svcPort := []v1.ServicePort{
 		{
-			Port: int32(80),
+			Port: int32(CalledPort),
+			TargetPort: intstr.IntOrString{
+				Type:   intstr.Int,
+				IntVal: int32(OllamaPort),
+			},
 		},
 	}
 
@@ -359,6 +374,6 @@ func (infer *Inference) generateService(request *module.GeneratorRequest) (*apiv
 // generateMatchLabels generates the match labels for the Kubernetes resources of the Inference instance.
 func (infer *Inference) generateMatchLabels() map[string]string {
 	return map[string]string{
-		"accessory": infer.Framework,
+		"accessory": strings.ToLower(infer.Framework),
 	}
 }
