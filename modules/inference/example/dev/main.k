@@ -3,12 +3,13 @@ import kam.v1.app_configuration as ac
 import service
 import service.container as c
 import inference.v1.inference
+import network as n
 
 inference: ac.AppConfiguration {
     # Declare the workload configurations. 
     workload: service.Service {
         containers: {
-            myct: c.Container {image: "xxx/ai-app"}
+            myct: c.Container {image: "kangy126/app"}
         }
         replicas: 1
     }
@@ -20,6 +21,7 @@ inference: ac.AppConfiguration {
         }
         "network": n.Network {ports: [n.Port {
             port: 80
+            targetPort: 5000
             public: True
         }]}
     }
