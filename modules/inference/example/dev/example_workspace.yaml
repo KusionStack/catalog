@@ -2,7 +2,7 @@
 modules: 
   inference: 
     path: oci://ghcr.io/kusionstack/inference
-    version: 0.1.0-beta.3
+    version: 0.1.0-beta.4
     configs:
       default: {}
   network: 
