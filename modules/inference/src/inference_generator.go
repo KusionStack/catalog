@@ -27,11 +27,11 @@ var (
 )
 
 var (
-	inferDeploymentSuffix = "-infer-deployment"
-	inferStorageSuffix    = "-infer-storage"
-	inferServiceSuffix    = "-infer-service"
-	inferPortSuffix       = "-port"
-	inferContainerSuffix  = "-infer-container"
+	inferDeploymentSuffix    = "-infer-deployment"
+	inferStorageSuffix       = "-infer-storage"
+	inferServiceSuffix       = "-infer-service"
+	inferContainerPortSuffix = "-port"
+	inferContainerSuffix     = "-infer-container"
 )
 
 var (
@@ -200,7 +200,7 @@ func (infer *Inference) GenerateInferenceResource(request *module.GeneratorReque
 
 	envVars := []v1.EnvVar{
 		{
-			Name:  "INFERENCE_PATH",
+			Name:  "INFERENCE_URL",
 			Value: svcName,
 		},
 	}
@@ -268,9 +268,13 @@ func (infer *Inference) generatePodSpec(_ *module.GeneratorRequest) (v1.PodSpec,
 		},
 	}
 
+	portName := strings.ToLower(infer.Framework) + inferContainerPortSuffix
+	if len(portName) > 15 {
+		portName = portName[:15]
+	}
 	ports := []v1.ContainerPort{
 		{
-			Name:          strings.ToLower(infer.Framework) + inferPortSuffix,
+			Name:          portName,
 			ContainerPort: containerPort,
 		},
 	}

@@ -2,6 +2,15 @@
 modules: 
   inference: 
     path: oci://ghcr.io/kusionstack/inference
-    version: 0.1.0-beta.3
+    version: 0.1.0-beta.4
     configs:
       default: {}
+  network: 
+    path: oci://ghcr.io/kusionstack/network
+    version: 0.2.0
+    configs: 
+      default: 
+        port: 
+          type: alicloud
+          annotations: 
+            service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec: slb.s1.small
