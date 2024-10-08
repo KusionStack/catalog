@@ -2,7 +2,7 @@ TEST?=$$(go list ./... | grep -v 'vendor')
 ###### chang variables below according to your own modules ###
 NAMESPACE=kusionstack
 NAME=inference
-VERSION=0.1.0-beta.4
+VERSION=0.1.0-beta.5
 BINARY=../bin/kusion-module-${NAME}_${VERSION}
 
 LOCAL_ARCH := $(shell uname -m)
