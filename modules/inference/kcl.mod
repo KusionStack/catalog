@@ -1,3 +1,3 @@
 [package]
 name = "inference"
-version = "0.1.0-beta.4"
+version = "0.1.0-beta.5"
