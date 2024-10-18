@@ -30,7 +30,21 @@ func (infer *Inference) GenerateOllamaResource(request *module.GeneratorRequest)
 	}
 	resources = append(resources, *svc)
 
-	patcher, err := infer.GenerateEnv(svcName)
+	// Build Kubernetes Deployment for proxy.
+	deploymentProxy, err := infer.generateProxyDeployment(request, svcName)
+	if err != nil {
+		return nil, nil, err
+	}
+	resources = append(resources, *deploymentProxy)
+
+	// Build Kubernetes Service for proxy.
+	svcProxy, svcNameProxy, err := infer.generateProxyService(request)
+	if err != nil {
+		return nil, nil, err
+	}
+	resources = append(resources, *svcProxy)
+
+	patcher, err := infer.GenerateEnv(svcNameProxy)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -199,4 +213,127 @@ func (infer *Inference) generateMatchLabels() map[string]string {
 	return map[string]string{
 		"accessory": strings.ToLower(infer.Framework),
 	}
+}
+
+// generateMatchLabels generates the match labels for the Kubernetes resources of proxy.
+func (infer *Inference) generateMatchLabelsForProxy() map[string]string {
+	return map[string]string{
+		"accessory": strings.ToLower(ProxyName),
+	}
+}
+
+// generatePodSpec generates the Kubernetes PodSpec for proxy.
+func (infer *Inference) generateProxyPodSpec(_ *module.GeneratorRequest, svcName string) (v1.PodSpec, error) {
+	portName := strings.ToLower(ProxyName) + inferContainerPortSuffix
+	if len(portName) > 15 {
+		portName = portName[:15]
+	}
+	containerPort := int32(ProxyPort)
+	ports := []v1.ContainerPort{
+		{
+			Name:          portName,
+			ContainerPort: containerPort,
+		},
+	}
+
+	envVars := []v1.EnvVar{
+		{
+			Name:  "MODEL",
+			Value: infer.Model,
+		},
+		{
+			Name:  "FRAMEWORK_URL",
+			Value: svcName,
+		},
+	}
+
+	image := ProxyImage
+	podSpec := v1.PodSpec{
+		Containers: []v1.Container{
+			{
+				Name:  strings.ToLower(ProxyName) + inferContainerSuffix,
+				Image: image,
+				Ports: ports,
+				Env:   envVars,
+			},
+		},
+	}
+	return podSpec, nil
+}
+
+// generateDeployment generates the Kubernetes Deployment resource for proxy.
+func (infer *Inference) generateProxyDeployment(request *module.GeneratorRequest, svcName string) (*apiv1.Resource, error) {
+	podSpec, err := infer.generateProxyPodSpec(request, svcName)
+	if err != nil {
+		return nil, nil
+	}
+
+	deployment := &appsv1.Deployment{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Deployment",
+			APIVersion: appsv1.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      strings.ToLower(ProxyName) + inferDeploymentSuffix,
+			Namespace: request.Project,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Selector: &metav1.LabelSelector{
+				MatchLabels: infer.generateMatchLabelsForProxy(),
+			},
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: infer.generateMatchLabelsForProxy(),
+				},
+				Spec: podSpec,
+			},
+		},
+	}
+
+	resourceID := module.KubernetesResourceID(deployment.TypeMeta, deployment.ObjectMeta)
+	resource, err := module.WrapK8sResourceToKusionResource(resourceID, deployment)
+	if err != nil {
+		return nil, err
+	}
+
+	return resource, nil
+}
+
+// generateService generates the Kubernetes Service resource for proxy.
+func (infer *Inference) generateProxyService(request *module.GeneratorRequest) (*apiv1.Resource, string, error) {
+	svcName := strings.ToLower(ProxyName) + inferServiceSuffix
+	svcPort := []v1.ServicePort{
+		{
+			Port: int32(CalledPort),
+			TargetPort: intstr.IntOrString{
+				Type:   intstr.Int,
+				IntVal: int32(ProxyPort),
+			},
+		},
+	}
+
+	service := &v1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: v1.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      svcName,
+			Namespace: request.Project,
+			Labels:    infer.generateMatchLabelsForProxy(),
+		},
+		Spec: v1.ServiceSpec{
+			Type:     v1.ServiceTypeClusterIP,
+			Ports:    svcPort,
+			Selector: infer.generateMatchLabelsForProxy(),
+		},
+	}
+
+	resourceID := module.KubernetesResourceID(service.TypeMeta, service.ObjectMeta)
+	resource, err := module.WrapK8sResourceToKusionResource(resourceID, service)
+	if err != nil {
+		return nil, svcName, err
+	}
+
+	return resource, svcName, nil
 }
