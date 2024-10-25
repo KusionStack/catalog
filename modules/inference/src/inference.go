@@ -57,6 +57,13 @@ var (
 	OllamaImage = "ollama/ollama"
 )
 
+// proxy
+var (
+	ProxyName  = "proxy"
+	ProxyPort  = 5000
+	ProxyImage = "kangy126/proxy"
+)
+
 func main() {
 	server.Start(&Inference{})
 }
