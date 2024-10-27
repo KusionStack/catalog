@@ -1,4 +1,6 @@
 # Kusion Catalog
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FKusionStack%2Fcatalog.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FKusionStack%2Fcatalog?ref=badge_shield)
+
 
 Kusion is an Intent-Driven Platform Orchestrator that enables developers to specify their desired intent in a declarative way and then use a consistent workflow to drive continuous delivery through the entire application lifecycle.
 
@@ -55,3 +57,6 @@ As an application developer, the workflow of using a Kusion module looks like th
 4. Apply the AppConfiguration
 
 Please visit the [application developer user guide](https://www.kusionstack.io/docs/concepts/module/app-dev-guide) for more details.
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FKusionStack%2Fcatalog.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FKusionStack%2Fcatalog?ref=badge_large)
