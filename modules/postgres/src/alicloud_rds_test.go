@@ -82,7 +82,7 @@ func TestPostgreSQLModule_GenerateAlicloudDBConnection(t *testing.T) {
 		SubnetID:       "test-subnet-id",
 	}
 
-	res, id, err := postgres.generateAlicloudDBConnection(defaultAlicloudProviderCfg, "test-region", "db_instance_id")
+	res, id, err := postgres.generateAlicloudDBConnection(defaultAlicloudProviderCfg, "test-region", "db_instance_id", "rds_account_id")
 
 	assert.NotNil(t, res)
 	assert.NotEqual(t, id, "")
