@@ -75,6 +75,22 @@ func TestMySQLModule_Generator(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
+			name: "Generate ViettelCloud MySQL DBaaS",
+			devModuleConfig: apiv1.Accessory{
+				"type":    "cloud",
+				"version": "8.0",
+			},
+			platformConfig: apiv1.GenericConfig{
+				"cloud":        "viettelcloud",
+				"size":         20,
+				"instanceType": "DBAAS_1vCPU_1_RAM",
+				"volumeType":   "ssd",
+				"vpc":          "vpc-test-name",
+				"subnetID":     "subnet-test-name",
+			},
+			expectedErr: nil,
+		},
+		{
 			name: "Unsupported MySQL type",
 			devModuleConfig: apiv1.Accessory{
 				"type":    "unsupported-type",

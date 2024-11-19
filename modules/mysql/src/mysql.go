@@ -65,6 +65,8 @@ type MySQL struct {
 	Version string `json:"version,omitempty" yaml:"version,omitempty"`
 	// The type of the MySQL instance.
 	InstanceType string `json:"instanceType,omitempty" yaml:"instanceType,omitempty"`
+	// The type of the MySQL volume.
+	VolumeType string
 	// The allocated storage size of the MySQL instance.
 	Size int `json:"size,omitempty" yaml:"size,omitempty"`
 	// The edition of the MySQL instance provided by the cloud vendor.
@@ -73,6 +75,8 @@ type MySQL struct {
 	Username string `json:"username,omitempty" yaml:"username,omitempty"`
 	// The list of IP addresses allowed to access the MySQL instance provided by the cloud vendor.
 	SecurityIPs []string `json:"securityIPs,omitempty" yaml:"securityIPs,omitempty"`
+	// The VPC ID associated with the cloud MySQL instance will be created in.
+	VPC string `json:"vpc,omitempty" yaml:"vpc,omitempty"`
 	// The virtual subnet ID associated with the VPC that the cloud MySQL instance will be created in.
 	SubnetID string `json:"subnetID,omitempty" yaml:"subnetID,omitempty"`
 	// Whether the host address of the cloud MySQL instance for the workload to connect with is via
@@ -128,6 +132,11 @@ func (mysql *MySQL) Generate(_ context.Context, request *module.GeneratorRequest
 			}
 		case "alicloud":
 			resources, patcher, err = mysql.GenerateAlicloudResources(request)
+			if err != nil {
+				return nil, err
+			}
+		case "viettelcloud":
+			resources, patcher, err = mysql.GenerateViettelCloudResources(request)
 			if err != nil {
 				return nil, err
 			}
@@ -198,6 +207,14 @@ func (mysql *MySQL) GetCompleteConfig(devConfig apiv1.Accessory, platformConfig 
 
 	if instanceType, ok := platformConfig["instanceType"]; ok {
 		mysql.InstanceType = instanceType.(string)
+	}
+
+	if volumeType, ok := platformConfig["volumeType"]; ok {
+		mysql.VolumeType = volumeType.(string)
+	}
+
+	if vpc, ok := platformConfig["vpc"]; ok {
+		mysql.VPC = vpc.(string)
 	}
 
 	if subnetID, ok := platformConfig["subnetID"]; ok {
