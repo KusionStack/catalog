@@ -1,6 +1,10 @@
 package main
 
-import "gopkg.in/yaml.v2"
+import (
+	"gopkg.in/yaml.v2"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
 const (
 	BuiltinModulePrefix = ""
@@ -9,6 +13,49 @@ const (
 	TypeExec            = BuiltinModulePrefix + ProbePrefix + "Exec"
 	TypeTCP             = BuiltinModulePrefix + ProbePrefix + "Tcp"
 )
+
+// LabelSelector is a label query over a set of resources.
+type LabelSelector struct {
+	// matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+	// map is equivalent to an element of matchExpressions, whose key field is "key", the
+	// operator is "In", and the values array contains only "value".
+	MatchLabels map[string]string `yaml:"matchLabels,omitempty" json:"matchLabels,omitempty"`
+	// matchExpressions is a list of label selector requirements.
+	MatchExpressions []LabelSelectorRequirement `yaml:"matchExpressions,omitempty" json:"matchExpressions,omitempty"`
+}
+
+// LabelSelectorRequirement is a selector that contains values, a key, and an operator that relates the key and values.
+type LabelSelectorRequirement struct {
+	// key is the label key that the selector applies to.
+	Key string `yaml:"key" json:"key"`
+	// operator represents a key's relationship to a set of values.
+	// Valid operators are In, NotIn, Exists and DoesNotExist.
+	Operator metav1.LabelSelectorOperator `yaml:"operator" json:"operator"`
+	// values is an array of string values. If the operator is In or NotIn,
+	// the values array must be non-empty. If the operator is Exists or DoesNotExist,
+	// the values array must be empty. This array is replaced during a strategic merge patch.
+	Values []string `yaml:"values,omitempty" json:"values,omitempty"`
+}
+
+// TopologySpreadConstraint specifies how to spread matching pods among the given topology.
+type TopologySpreadConstraint struct {
+	// MaxSkew describes the degree to which pods may be unevenly distributed.
+	MaxSkew int32 `yaml:"maxSkew" json:"maxSkew"`
+	// TopologyKey is the key of node labels.
+	TopologyKey string `yaml:"topologyKey" json:"topologyKey"`
+	// WhenUnsatisfiable indicates how to deal with a pod if it doesn't satisfy the spread constraint.
+	WhenUnsatisfiable corev1.UnsatisfiableConstraintAction `yaml:"whenUnsatisfiable" json:"whenUnsatisfiable"`
+	// LabelSelector is used to find matching pods.
+	LabelSelector *LabelSelector `yaml:"labelSelector,omitempty" json:"labelSelector,omitempty"`
+	// MinDomains indicates a minimum number of eligible domains.
+	MinDomains *int32 `yaml:"minDomains,omitempty" json:"minDomains,omitempty"`
+	// NodeAffinityPolicy indicates how we will treat Pod's nodeAffinity/nodeSelector when calculating pod topology spread skew.
+	NodeAffinityPolicy *corev1.NodeInclusionPolicy `yaml:"nodeAffinityPolicy,omitempty" json:"nodeAffinityPolicy,omitempty"`
+	// NodeTaintsPolicy indicates how we will treat node taints when calculating pod topology spread skew.
+	NodeTaintsPolicy *corev1.NodeInclusionPolicy `yaml:"nodeTaintsPolicy,omitempty" json:"nodeTaintsPolicy,omitempty"`
+	// MatchLabelKeys is a set of pod label keys to select the pods over which spreading will be calculated.
+	MatchLabelKeys []string `yaml:"matchLabelKeys,omitempty" json:"matchLabelKeys,omitempty"`
+}
 
 // Container describes how the App's tasks are expected to be run.
 type Container struct {
@@ -179,6 +226,9 @@ type Base struct {
 	// Labels and Annotations can be used to attach arbitrary metadata as key-value pairs to resources.
 	Labels      map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty" yaml:"annotations,omitempty"`
+	// TopologySpreadConstraints describes how a group of pods ought to spread across topology domains.
+	// Scheduler will schedule pods in a way which abides by the constraints. All topologySpreadConstraints are ANDed.
+	TopologySpreadConstraints map[string]TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty" yaml:"topologySpreadConstraints,omitempty"`
 }
 
 type ServiceType string

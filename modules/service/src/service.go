@@ -59,6 +59,8 @@ func (svc *Service) Generate(_ context.Context, request *module.GeneratorRequest
 		return nil, err
 	}
 
+	topologySpreadConstraints := handleTopologySpreadConstraints(svc.TopologySpreadConstraints)
+
 	res := make([]kusionv1.Resource, 0)
 	// Create ConfigMap objects based on the App's configuration.
 	for _, cm := range configMaps {
@@ -89,8 +91,9 @@ func (svc *Service) Generate(_ context.Context, request *module.GeneratorRequest
 			Annotations: annotations,
 		},
 		Spec: corev1.PodSpec{
-			Containers: containers,
-			Volumes:    volumes,
+			TopologySpreadConstraints: topologySpreadConstraints,
+			Containers:                containers,
+			Volumes:                   volumes,
 		},
 	}
 

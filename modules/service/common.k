@@ -1,5 +1,6 @@
 import container as c
 import secret as sec
+import topologyspreadconstraint as tp
 import kam.v1.workload as wl
 
 schema WorkloadBase(wl.Workload):
@@ -29,6 +30,9 @@ schema WorkloadBase(wl.Workload):
 
     # The number of containers that should be ran.
     replicas?:                   int
+
+    # TopologySpreadConstraint describes how a group of pods ought to spread across topology domains.
+    topologySpreadConstraints:  {str:tp.TopologySpreadConstraint}
 
     ###### Other metadata info
     # Labels and annotations can be used to attach arbitrary metadata as key-value pairs to resources.
