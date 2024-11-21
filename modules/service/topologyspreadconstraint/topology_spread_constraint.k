@@ -102,7 +102,7 @@ schema TopologySpreadConstraint:
     check:
         maxSkew > 0, "maxSkew must be greater than 0"
         whenUnsatisfiable in ["DoNotSchedule", "ScheduleAnyway"], "whenUnsatisfiable value is invalid"
-        labelSelector != Undefined if matchLabelKeys, "matchLabelKeys can't be set when labelSelector isn't set"
+        labelSelector if matchLabelKeys, "matchLabelKeys can't be set when labelSelector isn't set"
         minDomains > 0 if minDomains != Undefined, "minDomains must be greater than 0"
         nodeAffinityPolicy in ["Ignore", "Honor"] if nodeAffinityPolicy, "nodeAffinityPolicy value is invalid"
         nodeTaintsPolicy in ["Ignore", "Honor"] if nodeTaintsPolicy, "nodeTaintsPolicy value is invalid"
