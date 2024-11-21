@@ -449,3 +449,39 @@ func parseSecretReference(ref string) (result secretReference, _ bool, _ error) 
 
 	return result, true, nil
 }
+
+func handleTopologySpreadConstraints(tps map[string]TopologySpreadConstraint) []corev1.TopologySpreadConstraint {
+	var topologySpreadConstraints []corev1.TopologySpreadConstraint
+	if len(tps) == 0 {
+		return nil
+	}
+
+	for _, v := range tps {
+		tp := corev1.TopologySpreadConstraint{
+			MaxSkew:            v.MaxSkew,
+			TopologyKey:        v.TopologyKey,
+			WhenUnsatisfiable:  v.WhenUnsatisfiable,
+			MinDomains:         v.MinDomains,
+			NodeAffinityPolicy: v.NodeAffinityPolicy,
+			NodeTaintsPolicy:   v.NodeTaintsPolicy,
+			MatchLabelKeys:     v.MatchLabelKeys,
+		}
+
+		if v.LabelSelector != nil {
+			var matchExpressions []metav1.LabelSelectorRequirement
+			for _, m := range v.LabelSelector.MatchExpressions {
+				matchExpressions = append(matchExpressions, metav1.LabelSelectorRequirement{
+					Key:      m.Key,
+					Operator: m.Operator,
+					Values:   m.Values,
+				})
+			}
+			tp.LabelSelector = &metav1.LabelSelector{
+				MatchLabels:      v.LabelSelector.MatchLabels,
+				MatchExpressions: matchExpressions,
+			}
+		}
+		topologySpreadConstraints = append(topologySpreadConstraints, tp)
+	}
+	return topologySpreadConstraints
+}
