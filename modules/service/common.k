@@ -32,7 +32,7 @@ schema WorkloadBase(wl.Workload):
     replicas?:                   int
 
     # TopologySpreadConstraint describes how a group of pods ought to spread across topology domains.
-    topologySpreadConstraints:  {str:tp.TopologySpreadConstraint}
+    topologySpreadConstraints?:  {str:tp.TopologySpreadConstraint}
 
     ###### Other metadata info
     # Labels and annotations can be used to attach arbitrary metadata as key-value pairs to resources.
