@@ -2,28 +2,37 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"runtime/debug"
 
 	"gopkg.in/yaml.v2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
+	"kusionstack.io/kusion-module-framework/pkg/log"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/modules"
 )
 
-func (j *Job) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
+func (j *Job) Generate(ctx context.Context, request *module.GeneratorRequest) (response *module.GeneratorResponse, err error) {
+	// Get the module logger with the generator context.
+	logger := log.GetModuleLogger(ctx)
+	logger.Info("Generating resources...")
+
 	defer func() {
 		if r := recover(); r != nil {
-			log.Debugf("failed to generate Job module: %v", r)
+			logger.Debug("failed to generate Job module: %v", r)
+			response = nil
+			rawRequest, _ := json.Marshal(request)
+			err = fmt.Errorf("panic in job module generator but recovered with error: [%v] and stack %v and request %v",
+				r, string(debug.Stack()), string(rawRequest))
 		}
 	}()
 
 	if request.DevConfig == nil {
-		log.Info("Job does not exist in AppConfig config")
+		logger.Info("Job does not exist in AppConfig config")
 		return nil, nil
 	}
 	out, err := yaml.Marshal(request.DevConfig)
@@ -39,16 +48,16 @@ func (j *Job) Generate(_ context.Context, request *module.GeneratorRequest) (*mo
 		return nil, fmt.Errorf("complete Job by platform config failed, %w", err)
 	}
 
-	uniqueAppName := modules.UniqueAppName(request.Project, request.Stack, request.App)
+	uniqueAppName := module.UniqueAppName(request.Project, request.Stack, request.App)
 
 	meta := metav1.ObjectMeta{
 		Namespace: request.Project,
 		Name:      uniqueAppName,
-		Labels: modules.MergeMaps(
-			modules.UniqueAppLabels(request.Project, request.App),
+		Labels: module.MergeMaps(
+			module.UniqueAppLabels(request.Project, request.App),
 			j.Labels,
 		),
-		Annotations: modules.MergeMaps(
+		Annotations: module.MergeMaps(
 			j.Annotations,
 		),
 	}
@@ -58,7 +67,7 @@ func (j *Job) Generate(_ context.Context, request *module.GeneratorRequest) (*mo
 		return nil, err
 	}
 
-	res := make([]v1.Resource, 0)
+	res := make([]kusionapiv1.Resource, 0)
 	for _, cm := range configMaps {
 		cm.Namespace = request.Project
 		resourceID := module.KubernetesResourceID(cm.TypeMeta, cm.ObjectMeta)
@@ -72,8 +81,8 @@ func (j *Job) Generate(_ context.Context, request *module.GeneratorRequest) (*mo
 	jobSpec := batchv1.JobSpec{
 		Template: corev1.PodTemplateSpec{
 			ObjectMeta: metav1.ObjectMeta{
-				Labels:      modules.MergeMaps(modules.UniqueAppLabels(request.Project, request.App), j.Labels),
-				Annotations: modules.MergeMaps(j.Annotations),
+				Labels:      module.MergeMaps(module.UniqueAppLabels(request.Project, request.App), j.Labels),
+				Annotations: module.MergeMaps(j.Annotations),
 			},
 			Spec: corev1.PodSpec{
 				Containers:    containers,

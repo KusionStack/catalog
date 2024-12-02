@@ -3,53 +3,64 @@ package main
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestPostgreSQLModule_Generator(t *testing.T) {
+	// Set provider envs.
+	originAWSRegion := os.Getenv("AWS_REGION")
+	originAlicloudRegion := os.Getenv("ALICLOUD_REGION")
+
+	defer func() {
+		os.Setenv("AWS_REGION", originAWSRegion)
+		os.Setenv("ALICLOUD_REGION", originAlicloudRegion)
+	}()
+
+	os.Setenv("AWS_REGION", "us-east-1")
+	os.Setenv("ALICLOUD_REGION", "cn-beijing")
+
 	r := &module.GeneratorRequest{
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &apiv1.Workload{
-			Header: apiv1.Header{
-				Type: "Service",
-			},
-			Service: &apiv1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
 	testcases := []struct {
 		name            string
-		devModuleConfig apiv1.Accessory
-		platformConfig  apiv1.GenericConfig
+		devModuleConfig kusionapiv1.Accessory
+		platformConfig  kusionapiv1.GenericConfig
 		expectedErr     error
 	}{
 		{
 			name: "Generate local PostgreSQL database",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "local",
 				"version": "14.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"databaseName": "test-postgres",
 			},
 			expectedErr: nil,
 		},
 		{
 			name: "Generate AWS PostgreSQL RDS",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "cloud",
 				"version": "14.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"cloud":          "aws",
 				"size":           20,
 				"instanceType":   "db.t3.micro",
@@ -59,11 +70,11 @@ func TestPostgreSQLModule_Generator(t *testing.T) {
 		},
 		{
 			name: "Generate Alicloud PostgreSQL RDS",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "cloud",
 				"version": "14.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"cloud":          "alicloud",
 				"size":           20,
 				"instanceType":   "postgres.n2.serverless.1c",
@@ -75,22 +86,22 @@ func TestPostgreSQLModule_Generator(t *testing.T) {
 		},
 		{
 			name: "Unsupported PostgreSQL type",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "unsupported-type",
 				"version": "14.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"databaseName": "test-postgres",
 			},
 			expectedErr: errors.New("unsupported postgres type"),
 		},
 		{
 			name: "Unsupported Terraform provider type",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "cloud",
 				"version": "14.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"cloud":        "unsupported-type",
 				"instanceType": "db.t3.micro",
 			},
@@ -98,11 +109,11 @@ func TestPostgreSQLModule_Generator(t *testing.T) {
 		},
 		{
 			name: "Empty cloud PostgreSQL instance type",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "cloud",
 				"version": "14.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"cloud": "aws",
 			},
 			expectedErr: ErrEmptyInstanceTypeForCloudDB,
@@ -129,13 +140,13 @@ func TestPostgreSQLModule_Generator(t *testing.T) {
 func TestPostgreSQLModule_GetCompleteConfig(t *testing.T) {
 	testcases := []struct {
 		name               string
-		devModuleConfig    apiv1.Accessory
-		platformConfig     apiv1.GenericConfig
+		devModuleConfig    kusionapiv1.Accessory
+		platformConfig     kusionapiv1.GenericConfig
 		expectedPostgreSQL *PostgreSQL
 	}{
 		{
 			name: "Empty platform config",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "local",
 				"version": "14.0",
 			},
@@ -152,11 +163,11 @@ func TestPostgreSQLModule_GetCompleteConfig(t *testing.T) {
 		},
 		{
 			name: "Default config with specified platform config",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "cloud",
 				"version": "14.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"size":           100,
 				"privateRouting": true,
 				"instanceType":   "test-instance-type",
@@ -196,11 +207,9 @@ func TestPostgreSQLModule_GenerateDBSecret(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &apiv1.Workload{
-			Header: apiv1.Header{
-				Type: "Service",
-			},
-			Service: &apiv1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -236,7 +245,7 @@ func TestPostgreSQLModule_GenerateDBSecret(t *testing.T) {
 		t.Fatalf("failed to wrap secret resource for unit test: %v", err)
 	}
 
-	expectedPatcher := &apiv1.Patcher{
+	expectedPatcher := &kusionapiv1.Patcher{
 		Environments: []v1.EnvVar{
 			{
 				Name: "KUSION_DB_HOST_TEST_DATABASE",
@@ -286,11 +295,9 @@ func TestPostgreSQLModule_GenerateTFRandomPassword(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &apiv1.Workload{
-			Header: apiv1.Header{
-				Type: "Service",
-			},
-			Service: &apiv1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 

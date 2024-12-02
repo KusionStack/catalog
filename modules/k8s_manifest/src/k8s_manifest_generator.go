@@ -2,19 +2,21 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 
 	"gopkg.in/yaml.v2"
 	k8sYAML "k8s.io/apimachinery/pkg/util/yaml"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
+	"kusionstack.io/kusion-module-framework/pkg/log"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/log"
 )
 
 var FileExtensions = []string{".yaml", ".yml", ".json"}
@@ -36,15 +38,23 @@ type K8sManifest struct {
 
 // Generate implements the generation logic of k8s_manifest module, which
 // changes the raw K8s manifests into the Kusion Resources.
-func (k *K8sManifest) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
+func (k *K8sManifest) Generate(ctx context.Context, request *module.GeneratorRequest) (response *module.GeneratorResponse, err error) {
+	// Get the module logger with the generator context.
+	logger := log.GetModuleLogger(ctx)
+	logger.Info("Generating resources...")
+
 	defer func() {
 		if r := recover(); r != nil {
-			log.Debugf("failed to generate k8s_manifest module: %v", r)
+			logger.Debug("failed to generate k8s_manifest module: %v", r)
+			response = nil
+			rawRequest, _ := json.Marshal(request)
+			err = fmt.Errorf("panic in k8s_manifest module generator but recovered with error: [%v] and stack %v and request %v",
+				r, string(debug.Stack()), string(rawRequest))
 		}
 	}()
 
 	if err := k.CompleteConfig(request.DevConfig, request.PlatformConfig); err != nil {
-		log.Debugf("failed to get complete k8s_manifest module configs: %v", err)
+		logger.Debug("failed to get complete k8s_manifest module configs: %v", err)
 		return nil, err
 	}
 
@@ -81,7 +91,7 @@ func (k *K8sManifest) Generate(_ context.Context, request *module.GeneratorReque
 		}
 	}
 
-	resources := []apiv1.Resource{}
+	resources := []kusionapiv1.Resource{}
 	for _, objList := range manifestYAMLFiles {
 		for _, obj := range objList {
 			if obj == nil {
@@ -105,9 +115,9 @@ func (k *K8sManifest) Generate(_ context.Context, request *module.GeneratorReque
 				kusionID = apiVersion + ":" + kind + ":" + namespace + ":" + name
 			}
 
-			resources = append(resources, apiv1.Resource{
+			resources = append(resources, kusionapiv1.Resource{
 				ID:         kusionID,
-				Type:       apiv1.Kubernetes,
+				Type:       kusionapiv1.Kubernetes,
 				Attributes: obj.(map[string]interface{}),
 			})
 		}
@@ -159,7 +169,7 @@ func ignoreFile(path string, extensions []string) bool {
 }
 
 // CompleteConfig completes the k8s_manifest module configs with both devModuleConfig and platformModuleConfig.
-func (k *K8sManifest) CompleteConfig(devConfig apiv1.Accessory, platformConfig apiv1.GenericConfig) error {
+func (k *K8sManifest) CompleteConfig(devConfig kusionapiv1.Accessory, platformConfig kusionapiv1.GenericConfig) error {
 	// Retrieve the config items the developers are concerned about.
 	if devConfig != nil {
 		devCfgYAMLStr, err := yaml.Marshal(devConfig)

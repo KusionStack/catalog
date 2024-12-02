@@ -2,7 +2,7 @@ TEST?=$$(go list ./... | grep -v 'vendor')
 ###### chang variables below according to your own modules ###
 NAMESPACE=kusionstack
 NAME=opensearch
-VERSION=0.1.0
+VERSION=0.1.1-rc.1
 BINARY=../bin/kusion-module-${NAME}_${VERSION}
 
 LOCAL_ARCH := $(shell uname -m)

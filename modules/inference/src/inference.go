@@ -2,15 +2,18 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"runtime/debug"
 	"strings"
 
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
+	"kusionstack.io/kusion-module-framework/pkg/log"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/log"
 )
 
 // error type
@@ -81,34 +84,41 @@ type Inference struct {
 	NumCtx      int     `yaml:"num_ctx,omitempty" json:"num_ctx,omitempty"`
 }
 
-func (infer *Inference) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
+func (infer *Inference) Generate(ctx context.Context, request *module.GeneratorRequest) (response *module.GeneratorResponse, err error) {
+	// Get the module logger with the generator context.
+	logger := log.GetModuleLogger(ctx)
+	logger.Info("Generating resources...")
+
+	// Handle the panic and update the returned error.
 	defer func() {
 		if r := recover(); r != nil {
-			log.Debugf("failed to generate inference module: %v", r)
+			logger.Debug("failed to generate inference module: %v", r)
+			response = nil
+			rawRequest, _ := json.Marshal(request)
+			err = fmt.Errorf("panic in inference module generator but recovered with error: [%v] and stack %v and request %v", r, string(debug.Stack()), string(rawRequest))
 		}
 	}()
 
 	// Inference module does not exist in AppConfiguration configs.
 	if request.DevConfig == nil {
-		log.Info("Inference does not exist in AppConfig config")
+		logger.Info("Inference does not exist in AppConfig config")
 		return nil, nil
 	}
 
 	// Get the complete inference module configs.
 	if err := infer.CompleteConfig(request.DevConfig, request.PlatformConfig); err != nil {
-		log.Debugf("failed to get complete inference module configs: %v", err)
+		logger.Debug("failed to get complete inference module configs: %v", err)
 		return nil, err
 	}
 
 	// Validate the completed inference module configs.
 	if err := infer.ValidateConfig(); err != nil {
-		log.Debugf("failed to validate the inference module configs: %v", err)
+		logger.Debug("failed to validate the inference module configs: %v", err)
 		return nil, err
 	}
 
-	var resources []apiv1.Resource
-	var patcher *apiv1.Patcher
-	var err error
+	var resources []kusionapiv1.Resource
+	var patcher *kusionapiv1.Patcher
 
 	switch strings.ToLower(infer.Framework) {
 	case OllamaType:
@@ -128,7 +138,7 @@ func (infer *Inference) Generate(_ context.Context, request *module.GeneratorReq
 }
 
 // CompleteConfig completes the inference module configs with both devModuleConfig and platformModuleConfig.
-func (infer *Inference) CompleteConfig(devConfig apiv1.Accessory, platformConfig apiv1.GenericConfig) error {
+func (infer *Inference) CompleteConfig(devConfig kusionapiv1.Accessory, platformConfig kusionapiv1.GenericConfig) error {
 	infer.TopK = defaultTopK
 	infer.TopP = defaultTopP
 	infer.Temperature = defaultTemperature
@@ -180,14 +190,14 @@ func (infer *Inference) ValidateConfig() error {
 	return nil
 }
 
-func (infer *Inference) GenerateEnv(svcName string) (*apiv1.Patcher, error) {
+func (infer *Inference) GenerateEnv(svcName string) (*kusionapiv1.Patcher, error) {
 	envVars := []v1.EnvVar{
 		{
 			Name:  "INFERENCE_URL",
 			Value: svcName,
 		},
 	}
-	patcher := &apiv1.Patcher{
+	patcher := &kusionapiv1.Patcher{
 		Environments: envVars,
 	}
 

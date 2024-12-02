@@ -5,17 +5,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestOpenSearch_CompleteConfig(t *testing.T) {
-	devConfig := v1.Accessory{
+	devConfig := kusionapiv1.Accessory{
 		"engineVersion": "OpenSearch_1.0",
 		"domainName":    "test-domain",
 	}
 
-	platformConfig := v1.GenericConfig{
+	platformConfig := kusionapiv1.GenericConfig{
 		"clusterConfig": map[string]interface{}{
 			"instanceType": "t2.micro.search",
 		},
@@ -38,8 +38,8 @@ func TestOpenSearch_CompleteConfig(t *testing.T) {
 	}
 
 	type args struct {
-		devConfig      v1.Accessory
-		platformConfig v1.GenericConfig
+		devConfig      kusionapiv1.Accessory
+		platformConfig kusionapiv1.GenericConfig
 	}
 	tests := []struct {
 		name    string
@@ -60,7 +60,7 @@ func TestOpenSearch_CompleteConfig(t *testing.T) {
 			name: "CompleteConfig with invalid devConfig",
 			os:   &OpenSearch{},
 			args: args{
-				devConfig: v1.Accessory{
+				devConfig: kusionapiv1.Accessory{
 					"engineVersion": 123, // Invalid type
 					"domainName":    "test-domain",
 				},
@@ -73,7 +73,7 @@ func TestOpenSearch_CompleteConfig(t *testing.T) {
 			os:   &OpenSearch{},
 			args: args{
 				devConfig: devConfig,
-				platformConfig: v1.GenericConfig{
+				platformConfig: kusionapiv1.GenericConfig{
 					"clusterConfig": map[string]interface{}{
 						"instanceType": "t2.micro.search",
 					},
@@ -112,6 +112,7 @@ func TestOpenSearch_ValidateConfig(t *testing.T) {
 						Action: []string{"ec2:RunInstances", "s3:*"},
 					},
 				},
+				Region: "us-east-1",
 			},
 			wantErr: false,
 		},

@@ -2,17 +2,19 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
+	"runtime/debug"
 	"strings"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
+	"kusionstack.io/kusion-module-framework/pkg/log"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/log"
 	"kusionstack.io/kusion/pkg/workspace"
 )
 
@@ -84,22 +86,30 @@ type PostgreSQL struct {
 	DatabaseName string `json:"databaseName,omitempty" yaml:"databaseName,omitempty"`
 }
 
-func (postgres *PostgreSQL) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
+func (postgres *PostgreSQL) Generate(ctx context.Context, request *module.GeneratorRequest) (response *module.GeneratorResponse, err error) {
+	// Get the module logger with the generator context.
+	logger := log.GetModuleLogger(ctx)
+	logger.Info("Generating resources...")
+
 	defer func() {
 		if r := recover(); r != nil {
-			log.Debugf("failed to generate postgres module: %v", r)
+			logger.Debug("failed to generate postgres module: %v", r)
+			response = nil
+			rawRequest, _ := json.Marshal(request)
+			err = fmt.Errorf("panic in postgres generator but recovered with error: [%v] and stack %v and request %v",
+				r, string(debug.Stack()), string(rawRequest))
 		}
 	}()
 
 	// PostgreSQL does not exist in AppConfiguration and workspace configs.
 	if request.DevConfig == nil {
-		log.Info("PostgreSQL does not exist in AppConfig config")
+		logger.Info("PostgreSQL does not exist in AppConfig config")
 
 		return nil, nil
 	}
 
 	// Get the complete configs of the PostgreSQL instance.
-	err := postgres.GetCompleteConfig(request.DevConfig, request.PlatformConfig)
+	err = postgres.GetCompleteConfig(request.DevConfig, request.PlatformConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +120,8 @@ func (postgres *PostgreSQL) Generate(_ context.Context, request *module.Generato
 	}
 
 	// Generate the PostgreSQL intance resources based on the type and the cloud provider config.
-	var resources []apiv1.Resource
-	var patcher *apiv1.Patcher
+	var resources []kusionapiv1.Resource
+	var patcher *kusionapiv1.Patcher
 	var providerType string
 	switch strings.ToLower(postgres.Type) {
 	case LocalDBType:
@@ -148,7 +158,7 @@ func (postgres *PostgreSQL) Generate(_ context.Context, request *module.Generato
 
 // GetCompleteConfig combines the configs in devModuleConfig and platformModuleConfig to form a complete
 // configuration for the PostgreSQL instance.
-func (postgres *PostgreSQL) GetCompleteConfig(devConfig apiv1.Accessory, platformConfig apiv1.GenericConfig) error {
+func (postgres *PostgreSQL) GetCompleteConfig(devConfig kusionapiv1.Accessory, platformConfig kusionapiv1.GenericConfig) error {
 	// Set the default values for PostgreSQL instance if platformConfig not exists.
 	if platformConfig == nil {
 		postgres.Username = defaultUsername
@@ -216,7 +226,7 @@ func (postgres *PostgreSQL) GetCompleteConfig(devConfig apiv1.Accessory, platfor
 // GenerateDBSecret generates Kubernetes Secret resource to store the host address, username
 // and password of the local PostgreSQL database instance.
 func (postgres *PostgreSQL) GenerateDBSecret(request *module.GeneratorRequest, hostAddress, username, password string) (
-	*apiv1.Resource, *apiv1.Patcher, error,
+	*kusionapiv1.Resource, *kusionapiv1.Patcher, error,
 ) {
 	// Create the data map of Kubernetes Secret storing the database host address, username
 	// and password.
@@ -286,7 +296,7 @@ func (postgres *PostgreSQL) GenerateDBSecret(request *module.GeneratorRequest, h
 		},
 	}
 
-	patcher := &apiv1.Patcher{
+	patcher := &kusionapiv1.Patcher{
 		Environments: envVars,
 	}
 
@@ -295,7 +305,7 @@ func (postgres *PostgreSQL) GenerateDBSecret(request *module.GeneratorRequest, h
 
 // GenerateTFRandomPassword generates the terraform random_password resource as the password
 // of the cloud provided PostgreSQL database instance.
-func (postgres *PostgreSQL) GenerateTFRandomPassword(request *module.GeneratorRequest) (*apiv1.Resource, string, error) {
+func (postgres *PostgreSQL) GenerateTFRandomPassword(request *module.GeneratorRequest) (*kusionapiv1.Resource, string, error) {
 	resAttrs := map[string]any{
 		"length":           16,
 		"special":          true,
@@ -335,7 +345,7 @@ func GenerateDefaultPostgreSQLName(projectName, stackName, appName string) strin
 }
 
 // GetCloudProviderType returns the cloud provider type of the PostgreSQL instance.
-func GetCloudProviderType(platformConfig apiv1.GenericConfig) (string, error) {
+func GetCloudProviderType(platformConfig kusionapiv1.GenericConfig) (string, error) {
 	if platformConfig == nil {
 		return "", workspace.ErrEmptyModuleConfigBlock
 	}

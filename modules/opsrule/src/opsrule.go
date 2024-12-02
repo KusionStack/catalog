@@ -2,21 +2,39 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"runtime/debug"
 	"strconv"
+	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"kusionstack.io/kube-api/apps/v1alpha1"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
+	"kusionstack.io/kusion-module-framework/pkg/log"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/log"
 )
 
 type OpsRuleModule struct{}
 
-func (o *OpsRuleModule) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
+func (o *OpsRuleModule) Generate(ctx context.Context, request *module.GeneratorRequest) (response *module.GeneratorResponse, err error) {
+	// Get the module logger with the generator context.
+	logger := log.GetModuleLogger(ctx)
+	logger.Info("Generating resources...")
+
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Debug("failed to generate opsrule module: %v", r)
+			response = nil
+			rawRequest, _ := json.Marshal(request)
+			err = fmt.Errorf("panic in opsrule module generator but recovered with error: [%v] and stack %v and request %v",
+				r, string(debug.Stack()), string(rawRequest))
+		}
+	}()
+
 	// opsRule does not exist in AppConfig and workspace config
 	if request.DevConfig == nil && request.PlatformConfig == nil {
 		log.Info("OpsRule does not exist in AppConfig and workspace config")
@@ -24,12 +42,12 @@ func (o *OpsRuleModule) Generate(_ context.Context, request *module.GeneratorReq
 	}
 
 	// Job does not support maxUnavailable
-	if request.Workload.Header.Type == v1.TypeJob {
+	if workloadType, ok := request.Workload["_type"]; ok && strings.Contains(workloadType.(string), ".Job") {
 		log.Infof("Job does not support opsRule")
 		return nil, nil
 	}
 
-	if request.Workload.Service.Type == v1.Collaset {
+	if workloadType, ok := request.Workload["type"]; ok && strings.ToLower(workloadType.(string)) == "collaset" {
 		maxUnavailable, err := GetMaxUnavailable(request.DevConfig, request.PlatformConfig)
 		if err != nil {
 			return nil, err
@@ -65,13 +83,13 @@ func (o *OpsRuleModule) Generate(_ context.Context, request *module.GeneratorReq
 			return nil, err
 		}
 		return &module.GeneratorResponse{
-			Resources: []v1.Resource{*resource},
+			Resources: []kusionapiv1.Resource{*resource},
 		}, nil
 	}
 	return nil, nil
 }
 
-func GetMaxUnavailable(devConfig v1.Accessory, platformConfig v1.GenericConfig) (intstr.IntOrString, error) {
+func GetMaxUnavailable(devConfig kusionapiv1.Accessory, platformConfig kusionapiv1.GenericConfig) (intstr.IntOrString, error) {
 	var maxUnavailable interface{}
 	key := "maxUnavailable"
 

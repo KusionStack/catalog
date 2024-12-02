@@ -1,149 +1,128 @@
 package main
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"service"
+	yamlv2 "gopkg.in/yaml.v2"
 
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/modules"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
+	"kusionstack.io/kusion-module-framework/pkg/module"
 )
 
-func TestNewJobGenerator(t *testing.T) {
-	expectedProject := "test"
-	expectedStack := "dev"
-	expectedAppName := "test"
-	expectedJob := &v1.Job{}
-	expectedJobConfig := v1.GenericConfig{
-		"labels": v1.GenericConfig{
-			"Workload-type": "Job",
+func TestGenerate(t *testing.T) {
+	jobConfig := &Job{
+		Base: Base{
+			Containers: map[string]Container{
+				"busybox": {
+					Image: "busybox:1.28",
+					Command: []string{
+						"/bin/sh",
+						"-c",
+						"echo hello",
+					},
+				},
+			},
 		},
-		"annotations": v1.GenericConfig{
-			"Workload-type": "Job",
-		},
+		Schedule: "0 * * * *",
 	}
-	actual, err := NewJobGenerator(&Generator{
-		Project:   expectedProject,
-		Stack:     expectedStack,
-		App:       expectedAppName,
-		Namespace: expectedAppName,
-		service.Workload: &v1.Workload{
-			Job: expectedJob,
-		},
-		PlatformConfigs: map[string]v1.GenericConfig{
-			v1.ModuleJob: expectedJobConfig,
-		},
-	})
 
-	assert.NoError(t, err, "Error should be nil")
-	assert.NotNil(t, actual, "Generator should not be nil")
-	assert.Equal(t, expectedProject, actual.(*jobGenerator).project, "Project mismatch")
-	assert.Equal(t, expectedStack, actual.(*jobGenerator).stack, "Stack mismatch")
-	assert.Equal(t, expectedAppName, actual.(*jobGenerator).appName, "AppName mismatch")
-	assert.Equal(t, expectedJob, actual.(*jobGenerator).job, "Job mismatch")
-	assert.Equal(t, expectedJobConfig, actual.(*jobGenerator).jobConfig, "JobConfig mismatch")
-}
+	var devConfig map[string]interface{}
+	temp, _ := yamlv2.Marshal(jobConfig)
+	_ = yamlv2.Unmarshal(temp, &devConfig)
 
-func TestNewJobGeneratorFunc(t *testing.T) {
-	expectedProject := "test"
-	expectedStack := "dev"
-	expectedAppName := "test"
-	expectedJob := &v1.Job{}
-	expectedJobConfig := v1.GenericConfig{
-		"labels": v1.GenericConfig{
-			"workload-type": "Job",
-		},
-		"annotations": v1.GenericConfig{
-			"workload-type": "Job",
-		},
-	}
-	generatorFunc := NewJobGeneratorFunc(&Generator{
-		Project:   expectedProject,
-		Stack:     expectedStack,
-		App:       expectedAppName,
-		Namespace: expectedAppName,
-		service.Workload: &v1.Workload{
-			Job: expectedJob,
-		},
-		PlatformConfigs: map[string]v1.GenericConfig{
-			v1.ModuleJob: expectedJobConfig,
-		},
-	})
-	actualGenerator, err := generatorFunc()
-
-	assert.NoError(t, err, "Error should be nil")
-	assert.NotNil(t, actualGenerator, "Generator should not be nil")
-	assert.Equal(t, expectedProject, actualGenerator.(*jobGenerator).project, "Project mismatch")
-	assert.Equal(t, expectedStack, actualGenerator.(*jobGenerator).stack, "Stack mismatch")
-	assert.Equal(t, expectedAppName, actualGenerator.(*jobGenerator).appName, "AppName mismatch")
-	assert.Equal(t, expectedJob, actualGenerator.(*jobGenerator).job, "Job mismatch")
-	assert.Equal(t, expectedJobConfig, actualGenerator.(*jobGenerator).jobConfig, "JobConfig mismatch")
-}
-
-func TestJobGenerator_Generate(t *testing.T) {
-	testCases := []struct {
-		name              string
-		expectedProject   string
-		expectedStack     string
-		expectedAppName   string
-		expectedJob       *v1.Job
-		expectedJobConfig v1.GenericConfig
+	tests := []struct {
+		name    string
+		request *module.GeneratorRequest
+		want    *module.GeneratorResponse
+		wantErr bool
 	}{
 		{
-			name:            "test generate",
-			expectedProject: "test",
-			expectedStack:   "dev",
-			expectedAppName: "test",
-			expectedJob:     &v1.Job{},
-			expectedJobConfig: v1.GenericConfig{
-				"labels": v1.GenericConfig{
-					"workload-type": "Job",
-				},
-				"annotations": v1.GenericConfig{
-					"workload-type": "Job",
+			name: "CronJob",
+			request: &module.GeneratorRequest{
+				Project:        "default",
+				Stack:          "dev",
+				App:            "foo",
+				DevConfig:      devConfig,
+				PlatformConfig: nil,
+			},
+			wantErr: false,
+			want: &module.GeneratorResponse{
+				Resources: []kusionapiv1.Resource{
+					{
+						ID:   "batch/v1:CronJob:default:default-dev-foo",
+						Type: kusionapiv1.Kubernetes,
+						Attributes: map[string]interface{}{
+							"apiVersion": "batch/v1",
+							"kind":       "CronJob",
+							"metadata": map[string]interface{}{
+								"creationTimestamp": nil,
+								"labels": map[string]interface{}{
+									"app.kubernetes.io/name":    "foo",
+									"app.kubernetes.io/part-of": "default",
+								},
+								"name":      "default-dev-foo",
+								"namespace": "default",
+							},
+							"spec": map[string]interface{}{
+								"jobTemplate": map[string]interface{}{
+									"metadata": map[string]interface{}{
+										"creationTimestamp": nil,
+									},
+									"spec": map[string]interface{}{
+										"template": map[string]interface{}{
+											"metadata": map[string]interface{}{
+												"labels": map[string]interface{}{
+													"app.kubernetes.io/name":    "foo",
+													"app.kubernetes.io/part-of": "default",
+												},
+												"creationTimestamp": nil,
+											},
+											"spec": map[string]interface{}{
+												"containers": []interface{}{
+													map[string]interface{}{
+														"name":  "busybox",
+														"image": "busybox:1.28",
+														"command": []interface{}{
+															"/bin/sh",
+															"-c",
+															"echo hello",
+														},
+														"resources": map[string]interface{}{},
+													},
+												},
+												"restartPolicy": "Never",
+											},
+										},
+									},
+								},
+								"schedule": "0 * * * *",
+							},
+							"status": map[string]interface{}{},
+						},
+						Extensions: map[string]interface{}{
+							"GVK": "batch/v1, Kind=CronJob",
+						},
+					},
 				},
 			},
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			generator, _ := NewJobGenerator(&Generator{
-				Project:   tc.expectedProject,
-				Stack:     tc.expectedStack,
-				App:       tc.expectedAppName,
-				Namespace: tc.expectedAppName,
-				service.Workload: &v1.Workload{
-					Job: tc.expectedJob,
-				},
-				PlatformConfigs: map[string]v1.GenericConfig{
-					v1.ModuleJob: tc.expectedJobConfig,
-				},
-			})
-			spec := &v1.Spec{}
-			err := generator.Generate(spec)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := &Job{}
+			got, err := o.Generate(context.Background(), tt.request)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Generate() err = %v, wanted error %v", err, tt.wantErr)
+				return
+			}
 
-			assert.NoError(t, err, "Error should be nil")
-			assert.NotNil(t, spec.Resources, "Resources should not be nil")
-			assert.Len(t, spec.Resources, 1, "Number of resources mismatch")
-
-			// Check the generated resource
-			resource := spec.Resources[0]
-			actual := mapToUnstructured(resource.Attributes)
-
-			assert.Equal(t, "Job", actual.GetKind(), "Kind mismatch")
-			assert.Equal(t, tc.expectedProject, actual.GetNamespace(), "Namespace mismatch")
-			assert.Equal(t, modules.UniqueAppName(tc.expectedProject, tc.expectedStack, tc.expectedAppName), actual.GetName(), "Name mismatch")
-			assert.Equal(t, modules.MergeMaps(modules.UniqueAppLabels(tc.expectedProject, tc.expectedAppName), tc.expectedJob.Labels), actual.GetLabels(), "Labels mismatch")
-			assert.Equal(t, modules.MergeMaps(tc.expectedJob.Annotations), actual.GetAnnotations(), "Annotations mismatch")
+			for i, resource := range got.Resources {
+				// Fixme: consider the case that more than one resource.
+				assert.Equal(t, tt.want.Resources[i], resource)
+			}
 		})
 	}
-}
-
-func mapToUnstructured(data map[string]interface{}) *unstructured.Unstructured {
-	unstructuredObj := &unstructured.Unstructured{}
-	unstructuredObj.SetUnstructuredContent(data)
-	return unstructuredObj
 }

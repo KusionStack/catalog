@@ -2,21 +2,36 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	prometheusv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
+	"kusionstack.io/kusion-module-framework/pkg/log"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/modules"
 )
 
-func (g *MonitoringModule) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
+func (g *MonitoringModule) Generate(ctx context.Context, request *module.GeneratorRequest) (response *module.GeneratorResponse, err error) {
+	// Get the module logger with the generator context.
+	logger := log.GetModuleLogger(ctx)
+	logger.Info("Generating resources...")
+
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Debug("failed to generate Monitoring module: %v", r)
+			response = nil
+			rawRequest, _ := json.Marshal(request)
+			err = fmt.Errorf("panic in monitoring module generator but recovered with error: [%v] and stack %v and request %v",
+				r, string(debug.Stack()), string(rawRequest))
+		}
+	}()
+
 	// Monitoring does not exist in AppConfig and workspace config
 	if request.DevConfig == nil && request.PlatformConfig == nil {
 		log.Info("Monitoring does not exist in either AppConfig and workspace config")
@@ -44,13 +59,13 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 			if err != nil {
 				return nil, err
 			}
-			patcher := &v1.Patcher{
+			patcher := &kusionapiv1.Patcher{
 				Labels: map[string]string{
 					"kusion_monitoring_appname": request.App,
 				},
 			}
 			return &module.GeneratorResponse{
-				Resources: []v1.Resource{*resource},
+				Resources: []kusionapiv1.Resource{*resource},
 				Patcher:   patcher,
 			}, nil
 		} else if g.MonitorType == PodMonitorType {
@@ -64,13 +79,13 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 			if err != nil {
 				return nil, err
 			}
-			patcher := &v1.Patcher{
+			patcher := &kusionapiv1.Patcher{
 				Labels: map[string]string{
 					"kusion_monitoring_appname": request.App,
 				},
 			}
 			return &module.GeneratorResponse{
-				Resources: []v1.Resource{*resource},
+				Resources: []kusionapiv1.Resource{*resource},
 				Patcher:   patcher,
 			}, nil
 		} else {
@@ -86,7 +101,7 @@ func (g *MonitoringModule) Generate(_ context.Context, request *module.Generator
 			"prometheus.io/port":   g.Port,
 			"prometheus.io/scheme": g.Scheme,
 		}
-		patchers := &v1.Patcher{
+		patchers := &kusionapiv1.Patcher{
 			Annotations: annotations,
 		}
 		return &module.GeneratorResponse{
@@ -100,7 +115,7 @@ func main() {
 }
 
 // parseWorkspaceConfig parses the config items for monitoring generator in workspace configurations.
-func (g *MonitoringModule) parseWorkspaceConfig(devConfig v1.Accessory, workspaceConfig v1.GenericConfig) error {
+func (g *MonitoringModule) parseWorkspaceConfig(devConfig kusionapiv1.Accessory, workspaceConfig kusionapiv1.GenericConfig) error {
 	// get path and port from devConfig
 	if path, ok := devConfig[PathKey]; ok {
 		g.Path = path.(string)
@@ -192,7 +207,7 @@ func (g *MonitoringModule) buildMonitorObject(request *module.GeneratorRequest, 
 				APIVersion: prometheusv1.SchemeGroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-service-monitor", modules.UniqueAppName(request.Project, request.Stack, request.App)),
+				Name:      fmt.Sprintf("%s-service-monitor", module.UniqueAppName(request.Project, request.Stack, request.App)),
 				Namespace: request.Project,
 			},
 			Spec: prometheusv1.ServiceMonitorSpec{
@@ -220,7 +235,7 @@ func (g *MonitoringModule) buildMonitorObject(request *module.GeneratorRequest, 
 				APIVersion: prometheusv1.SchemeGroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-pod-monitor", modules.UniqueAppName(request.Project, request.Stack, request.App)),
+				Name:      fmt.Sprintf("%s-pod-monitor", module.UniqueAppName(request.Project, request.Stack, request.App)),
 				Namespace: request.Project,
 			},
 			Spec: prometheusv1.PodMonitorSpec{

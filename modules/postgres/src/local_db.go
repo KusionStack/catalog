@@ -11,12 +11,12 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 )
 
 // GenerateLocalResources generates the resources of locally deployed PostgreSQL database instance.
-func (postgres *PostgreSQL) GenerateLocalResources(request *module.GeneratorRequest) ([]apiv1.Resource, *apiv1.Patcher, error) {
-	var resources []apiv1.Resource
+func (postgres *PostgreSQL) GenerateLocalResources(request *module.GeneratorRequest) ([]kusionapiv1.Resource, *kusionapiv1.Patcher, error) {
+	var resources []kusionapiv1.Resource
 
 	// Build Kubernetes Secret for the random password of the local PostgreSQL instance.
 	password := postgres.generateLocalPassword(request)
@@ -59,7 +59,7 @@ func (postgres *PostgreSQL) GenerateLocalResources(request *module.GeneratorRequ
 }
 
 // generateLocalSecret generates the Kubernetes Secret resource for the local PostgreSQL instance.
-func (postgres *PostgreSQL) generateLocalSecret(request *module.GeneratorRequest, password string) (*apiv1.Resource, error) {
+func (postgres *PostgreSQL) generateLocalSecret(request *module.GeneratorRequest, password string) (*kusionapiv1.Resource, error) {
 	// Set the password string.
 	data := make(map[string]string)
 	data["password"] = password
@@ -89,7 +89,7 @@ func (postgres *PostgreSQL) generateLocalSecret(request *module.GeneratorRequest
 }
 
 // generateLocalDeployment generates the Kubernetes Deployment resource for the local PostgreSQL instance.
-func (postgres *PostgreSQL) generateLocalDeployment(request *module.GeneratorRequest) (*apiv1.Resource, error) {
+func (postgres *PostgreSQL) generateLocalDeployment(request *module.GeneratorRequest) (*kusionapiv1.Resource, error) {
 	// Prepare the Pod Spec for the local PostgreSQL instance.
 	podSpec, err := postgres.generateLocalPodSpec(request)
 	if err != nil {
@@ -216,7 +216,7 @@ func (postgres *PostgreSQL) generateLocalPodSpec(_ *module.GeneratorRequest) (v1
 }
 
 // generateLocalPVC generates the Kubernetes Persistent Volume Claim resource for the local PostgreSQL instance.
-func (postgres *PostgreSQL) generateLocalPVC(request *module.GeneratorRequest) (*apiv1.Resource, error) {
+func (postgres *PostgreSQL) generateLocalPVC(request *module.GeneratorRequest) (*kusionapiv1.Resource, error) {
 	// Create the Kubernetes PVC with the storage size of `postgres.Size`.
 	pvc := &v1.PersistentVolumeClaim{
 		TypeMeta: metav1.TypeMeta{
@@ -250,7 +250,7 @@ func (postgres *PostgreSQL) generateLocalPVC(request *module.GeneratorRequest) (
 }
 
 // generateLocalService generates the Kubernetes Service resource for the local PostgreSQL instance.
-func (postgres *PostgreSQL) generateLocalService(request *module.GeneratorRequest) (*apiv1.Resource, string, error) {
+func (postgres *PostgreSQL) generateLocalService(request *module.GeneratorRequest) (*kusionapiv1.Resource, string, error) {
 	// Prepare the service port for the local PostgreSQL instance.
 	svcPort := postgres.generateLocalSvcPort()
 	svcName := postgres.DatabaseName + localServiceSuffix

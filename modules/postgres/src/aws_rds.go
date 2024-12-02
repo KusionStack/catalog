@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/modules"
 )
 
 var ErrEmptyAWSProviderRegion = errors.New("empty aws provider region")
@@ -36,8 +35,8 @@ type awsSecurityGroupTraffic struct {
 }
 
 // GenerateAWSResources generates the AWS provided PostgreSQL database instance.
-func (postgres *PostgreSQL) GenerateAWSResources(request *module.GeneratorRequest) ([]apiv1.Resource, *apiv1.Patcher, error) {
-	var resources []apiv1.Resource
+func (postgres *PostgreSQL) GenerateAWSResources(request *module.GeneratorRequest) ([]kusionapiv1.Resource, *kusionapiv1.Patcher, error) {
+	var resources []kusionapiv1.Resource
 
 	// Set the AWS provider with the default provider config.
 	awsProviderCfg := defaultAWSProviderCfg
@@ -72,8 +71,8 @@ func (postgres *PostgreSQL) GenerateAWSResources(request *module.GeneratorReques
 	}
 	resources = append(resources, *awsDBInstance)
 
-	hostAddress := modules.KusionPathDependency(awsDBInstanceID, "address")
-	password := modules.KusionPathDependency(randomPasswordID, "result")
+	hostAddress := module.KusionPathDependency(awsDBInstanceID, "address")
+	password := module.KusionPathDependency(randomPasswordID, "result")
 
 	// Build Kubernetes Secret with the hostAddress, username and password of the AWS provided PostgreSQL instance,
 	// and inject the credentials as the environment variable patcher.
@@ -87,7 +86,7 @@ func (postgres *PostgreSQL) GenerateAWSResources(request *module.GeneratorReques
 }
 
 // generateAWSSecurityGroup generates aws_security_group resource for the AWS provided PostgreSQL database instance.
-func (postgres *PostgreSQL) generateAWSSecurityGroup(awsProviderCfg module.ProviderConfig, region string) (*apiv1.Resource, string, error) {
+func (postgres *PostgreSQL) generateAWSSecurityGroup(awsProviderCfg module.ProviderConfig, region string) (*kusionapiv1.Resource, string, error) {
 	// SecurityIPs should be in the format of IP address or Classes Inter-Domain
 	// Routing (CIDR) mode.
 	for _, ip := range postgres.SecurityIPs {
@@ -130,19 +129,19 @@ func (postgres *PostgreSQL) generateAWSSecurityGroup(awsProviderCfg module.Provi
 }
 
 // generateAWSDBInstance generates aws_db_instance resource for the AWS provided PostgreSQL database instance.
-func (postgres *PostgreSQL) generateAWSDBInstance(awsProviderCfg module.ProviderConfig, region, randomPasswordID, awsSecurityGroupID string) (*apiv1.Resource, string, error) {
+func (postgres *PostgreSQL) generateAWSDBInstance(awsProviderCfg module.ProviderConfig, region, randomPasswordID, awsSecurityGroupID string) (*kusionapiv1.Resource, string, error) {
 	resAttrs := map[string]interface{}{
 		"allocated_storage":   postgres.Size,
 		"engine":              dbEngine,
 		"engine_version":      postgres.Version,
 		"identifier":          postgres.DatabaseName,
 		"instance_class":      postgres.InstanceType,
-		"password":            modules.KusionPathDependency(randomPasswordID, "result"),
+		"password":            module.KusionPathDependency(randomPasswordID, "result"),
 		"publicly_accessible": IsPublicAccessible(postgres.SecurityIPs),
 		"skip_final_snapshot": true,
 		"username":            postgres.Username,
 		"vpc_security_group_ids": []string{
-			modules.KusionPathDependency(awsSecurityGroupID, "id"),
+			module.KusionPathDependency(awsSecurityGroupID, "id"),
 		},
 	}
 

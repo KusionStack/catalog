@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	v1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestInferenceModule_GenerateOllamaResource(t *testing.T) {
@@ -14,11 +14,9 @@ func TestInferenceModule_GenerateOllamaResource(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: v1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -46,11 +44,9 @@ func TestInferenceModule_GenerateOllamaPodSpec(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: v1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -77,11 +73,9 @@ func TestInferenceModule_GenerateOllamaDeployment(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: v1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -108,11 +102,9 @@ func TestInferenceModule_GenerateOllamaService(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: v1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -141,11 +133,9 @@ func TestInferenceModule_GenerateProxyPodSpec(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: v1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -172,11 +162,9 @@ func TestInferenceModule_GenerateProxyDeployment(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: v1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -203,11 +191,9 @@ func TestInferenceModule_GenerateProxyService(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: v1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 

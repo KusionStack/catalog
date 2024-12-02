@@ -12,8 +12,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"kusionstack.io/kube-api/apps/v1alpha1"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func Test_workloadServiceGenerator_Generate(t *testing.T) {
@@ -26,44 +26,11 @@ metadata:
     name: default-dev-foo-nginx-0
     namespace: default
 `
-	var cmResource v1.Resource
+	var cmResource kusionapiv1.Resource
 	k8sCm := &corev1.ConfigMap{}
 	_ = yaml.Unmarshal([]byte(cm), k8sCm)
 	unstructured, _ := runtime.DefaultUnstructuredConverter.ToUnstructured(k8sCm)
 	cmResource.Attributes = unstructured
-
-	csSvc := `apiVersion: v1
-kind: Service
-metadata:
-    annotations:
-        service-workload-type: CollaSet
-        service.beta.kubernetes.io/alibaba-cloud-loadbalancer-spec: slb.s1.small
-    creationTimestamp: null
-    labels:
-        app.kubernetes.io/name: foo
-        app.kubernetes.io/part-of: default
-        kusionstack.io/control: "true"
-        service-workload-type: CollaSet
-    name: default-dev-foo-public
-    namespace: default
-spec:
-    ports:
-        - name: default-dev-foo-public-80-tcp
-          port: 80
-          protocol: TCP
-          targetPort: 80
-    selector:
-        app.kubernetes.io/name: foo
-        app.kubernetes.io/part-of: default
-    type: LoadBalancer
-status:
-    loadBalancer: {}
-`
-	var csSvcResource v1.Resource
-	k8sSvc := &corev1.Service{}
-	_ = yaml.Unmarshal([]byte(csSvc), k8sSvc)
-	unSvc, _ := runtime.DefaultUnstructuredConverter.ToUnstructured(k8sSvc)
-	csSvcResource.Attributes = unSvc
 
 	deploySvc := `apiVersion: v1
 kind: Service
@@ -91,7 +58,7 @@ spec:
 status:
     loadBalancer: {}
 `
-	var deploySvcRes v1.Resource
+	var deploySvcRes kusionapiv1.Resource
 	deployK8sSvc := &corev1.Service{}
 	_ = yaml.Unmarshal([]byte(deploySvc), deployK8sSvc)
 	unDeploySvc, _ := runtime.DefaultUnstructuredConverter.ToUnstructured(deployK8sSvc)
@@ -141,7 +108,7 @@ spec:
     updateStrategy: {}
 status: {}
 `
-	var csResource v1.Resource
+	var csResource kusionapiv1.Resource
 	k8sCS := &v1alpha1.CollaSet{}
 	_ = yaml.Unmarshal([]byte(cs), k8sCS)
 	unCS, _ := runtime.DefaultUnstructuredConverter.ToUnstructured(k8sCS)
@@ -186,7 +153,7 @@ spec:
                   name: default-dev-foo-nginx-0
 status: {}
 `
-	var deployRes v1.Resource
+	var deployRes kusionapiv1.Resource
 	k8sDep := &appsv1.Deployment{}
 	_ = yaml.Unmarshal([]byte(deploy), k8sDep)
 	unDep, _ := runtime.DefaultUnstructuredConverter.ToUnstructured(k8sDep)
@@ -240,7 +207,7 @@ spec:
                   name: default-dev-foo-nginx-0
 status: {}
 `
-	var deployWithProbeRes v1.Resource
+	var deployWithProbeRes kusionapiv1.Resource
 	k8sDepWithProbe := &appsv1.Deployment{}
 	_ = yaml.Unmarshal([]byte(deployWithProbe), k8sDepWithProbe)
 	unDepWithProbe, _ := runtime.DefaultUnstructuredConverter.ToUnstructured(k8sDepWithProbe)
@@ -275,27 +242,27 @@ status: {}
 	temp, _ := yamlv2.Marshal(svcConfig)
 	_ = yamlv2.Unmarshal(temp, &devConfig)
 
-	serviceWithProbe := &v1.Service{
-		Base: v1.Base{
-			Containers: map[string]v1.Container{
+	serviceWithProbe := &Service{
+		Base: Base{
+			Containers: map[string]Container{
 				"nginx": {
 					Image: "nginx:v1",
-					Files: map[string]v1.FileSpec{
+					Files: map[string]FileSpec{
 						"/tmp/example.txt": {
 							Content: "some file contents",
 							Mode:    "0777",
 						},
 					},
-					ReadinessProbe: &v1.Probe{ProbeHandler: &v1.ProbeHandler{
-						TypeWrapper:     v1.TypeWrapper{Type: v1.TypeTCP},
+					ReadinessProbe: &Probe{ProbeHandler: &ProbeHandler{
+						TypeWrapper:     TypeWrapper{Type: TypeTCP},
 						ExecAction:      nil,
 						HTTPGetAction:   nil,
-						TCPSocketAction: &v1.TCPSocketAction{URL: "localhost:8888"},
+						TCPSocketAction: &TCPSocketAction{URL: "localhost:8888"},
 					}},
-					Lifecycle: &v1.Lifecycle{
-						PostStart: &v1.LifecycleHandler{
-							TypeWrapper: v1.TypeWrapper{Type: v1.TypeExec},
-							ExecAction: &v1.ExecAction{Command: []string{
+					Lifecycle: &Lifecycle{
+						PostStart: &LifecycleHandler{
+							TypeWrapper: TypeWrapper{Type: TypeExec},
+							ExecAction: &ExecAction{Command: []string{
 								"/bin/true",
 							}},
 							HTTPGetAction: nil,
@@ -304,7 +271,7 @@ status: {}
 				},
 			},
 		},
-		Ports: []v1.Port{
+		Ports: []Port{
 			{
 				Port:     80,
 				Protocol: "TCP",
@@ -328,19 +295,19 @@ status: {}
 				Stack:     "dev",
 				App:       "foo",
 				DevConfig: devConfig,
-				PlatformConfig: v1.GenericConfig{
+				PlatformConfig: kusionapiv1.GenericConfig{
 					"type": "CollaSet",
-					"labels": v1.GenericConfig{
+					"labels": kusionapiv1.GenericConfig{
 						"service-workload-type": "CollaSet",
 					},
-					"annotations": v1.GenericConfig{
+					"annotations": kusionapiv1.GenericConfig{
 						"service-workload-type": "CollaSet",
 					},
 				},
 			},
 			wantErr: false,
 			want: &module.GeneratorResponse{
-				Resources: []v1.Resource{cmResource, csResource},
+				Resources: []kusionapiv1.Resource{cmResource, csResource},
 			},
 		},
 		{
@@ -350,16 +317,16 @@ status: {}
 				Stack:     "dev",
 				App:       "foo",
 				DevConfig: devConfig,
-				PlatformConfig: v1.GenericConfig{
+				PlatformConfig: kusionapiv1.GenericConfig{
 					"replicas": 4,
-					"labels": v1.GenericConfig{
+					"labels": kusionapiv1.GenericConfig{
 						"service-workload-type": "Deployment",
 					},
 				},
 			},
 			wantErr: false,
 			want: &module.GeneratorResponse{
-				Resources: []v1.Resource{cmResource, deployRes, deploySvcRes},
+				Resources: []kusionapiv1.Resource{cmResource, deployRes, deploySvcRes},
 			},
 		},
 		{
@@ -369,16 +336,16 @@ status: {}
 				Stack:     "dev",
 				App:       "foo",
 				DevConfig: devConfig,
-				PlatformConfig: v1.GenericConfig{
+				PlatformConfig: kusionapiv1.GenericConfig{
 					"replicas": 4,
-					"labels": v1.GenericConfig{
+					"labels": kusionapiv1.GenericConfig{
 						"service-workload-type": "Deployment",
 					},
 				},
 			},
 			wantErr: false,
 			want: &module.GeneratorResponse{
-				Resources: []v1.Resource{cmResource, deployWithProbeRes, deploySvcRes},
+				Resources: []kusionapiv1.Resource{cmResource, deployWithProbeRes, deploySvcRes},
 			},
 		},
 	}
@@ -406,7 +373,7 @@ func TestCompleteServiceInput(t *testing.T) {
 	testcases := []struct {
 		name             string
 		service          *Service
-		config           v1.GenericConfig
+		config           kusionapiv1.GenericConfig
 		success          bool
 		completedService *Service
 	}{
@@ -428,7 +395,7 @@ func TestCompleteServiceInput(t *testing.T) {
 					},
 				},
 			},
-			config: v1.GenericConfig{
+			config: kusionapiv1.GenericConfig{
 				"type": "CollaSet",
 			},
 			success: true,
@@ -506,7 +473,7 @@ func TestCompleteServiceInput(t *testing.T) {
 					},
 				},
 			},
-			config: v1.GenericConfig{
+			config: kusionapiv1.GenericConfig{
 				"type": 1,
 			},
 			success:          false,
@@ -530,7 +497,7 @@ func TestCompleteServiceInput(t *testing.T) {
 					},
 				},
 			},
-			config: v1.GenericConfig{
+			config: kusionapiv1.GenericConfig{
 				"type": "unsupported",
 			},
 			success:          false,

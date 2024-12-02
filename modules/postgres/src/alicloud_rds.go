@@ -5,9 +5,8 @@ import (
 	"os"
 	"strings"
 
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/modules"
 )
 
 var ErrEmptyAlicloudProviderRegion = errors.New("empty alicloud provider region")
@@ -32,8 +31,8 @@ type alicloudServerlessConfig struct {
 }
 
 // GenerateAlicloudResources generates Alicloud provided PostgreSQL database instance.
-func (postgres *PostgreSQL) GenerateAlicloudResources(request *module.GeneratorRequest) ([]apiv1.Resource, *apiv1.Patcher, error) {
-	var resources []apiv1.Resource
+func (postgres *PostgreSQL) GenerateAlicloudResources(request *module.GeneratorRequest) ([]kusionapiv1.Resource, *kusionapiv1.Patcher, error) {
+	var resources []kusionapiv1.Resource
 
 	// Set the Alicloud provider with the default provider config.
 	alicloudProviderCfg := defaultAlicloudProviderCfg
@@ -64,7 +63,7 @@ func (postgres *PostgreSQL) GenerateAlicloudResources(request *module.GeneratorR
 	resources = append(resources, *alicloudDBInstanceRes)
 
 	// Build alicloud_db_connection resource.
-	var alicloudDBConnectionRes *apiv1.Resource
+	var alicloudDBConnectionRes *kusionapiv1.Resource
 	var alicloudDBConnectionID string
 	if IsPublicAccessible(postgres.SecurityIPs) {
 		alicloudDBConnectionRes, alicloudDBConnectionID, err = postgres.generateAlicloudDBConnection(
@@ -88,12 +87,12 @@ func (postgres *PostgreSQL) GenerateAlicloudResources(request *module.GeneratorR
 	}
 	resources = append(resources, *alicloudRDSAccountRes)
 
-	hostAddress := modules.KusionPathDependency(alicloudDBInstanceID, "connection_string")
+	hostAddress := module.KusionPathDependency(alicloudDBInstanceID, "connection_string")
 	if !postgres.PrivateRouting {
 		// Set the public network connection string as the host address.
-		hostAddress = modules.KusionPathDependency(alicloudDBConnectionID, "connection_string")
+		hostAddress = module.KusionPathDependency(alicloudDBConnectionID, "connection_string")
 	}
-	password := modules.KusionPathDependency(randomPasswordID, "result")
+	password := module.KusionPathDependency(randomPasswordID, "result")
 
 	// Build Kubernetes Secret with the hostAddress, username and password of the Alicloud provided PostgreSQL instance,
 	// and inject the credentials as the environment variable patcher.
@@ -110,7 +109,7 @@ func (postgres *PostgreSQL) GenerateAlicloudResources(request *module.GeneratorR
 // for the Alicloud provided PostgreSQL database instance.
 func (postgres *PostgreSQL) generateAlicloudDBInstance(alicloudProviderCfg module.ProviderConfig,
 	region string,
-) (*apiv1.Resource, string, error) {
+) (*kusionapiv1.Resource, string, error) {
 	resAttrs := map[string]interface{}{
 		"category":         postgres.Category,
 		"engine":           "PostgreSQL",
@@ -157,9 +156,9 @@ func (postgres *PostgreSQL) generateAlicloudDBInstance(alicloudProviderCfg modul
 // for the Alicloud provided PostgreSQL database instance.
 func (postgres *PostgreSQL) generateAlicloudDBConnection(alicloudProviderCfg module.ProviderConfig,
 	region, dbInstanceID string,
-) (*apiv1.Resource, string, error) {
+) (*kusionapiv1.Resource, string, error) {
 	resAttrs := map[string]interface{}{
-		"instance_id": modules.KusionPathDependency(dbInstanceID, "id"),
+		"instance_id": module.KusionPathDependency(dbInstanceID, "id"),
 		"port":        5432,
 	}
 
@@ -181,12 +180,12 @@ func (postgres *PostgreSQL) generateAlicloudDBConnection(alicloudProviderCfg mod
 // for the Alicloud provided PostgreSQL database instance.
 func (postgres *PostgreSQL) generateAlicloudRDSAccount(alicloudProviderCfg module.ProviderConfig,
 	region, accountName, randomPasswordID, dbInstanceID string,
-) (*apiv1.Resource, error) {
+) (*kusionapiv1.Resource, error) {
 	resAttrs := map[string]interface{}{
 		"account_name":     accountName,
-		"account_password": modules.KusionPathDependency(randomPasswordID, "result"),
+		"account_password": module.KusionPathDependency(randomPasswordID, "result"),
 		"account_type":     "Super",
-		"db_instance_id":   modules.KusionPathDependency(dbInstanceID, "id"),
+		"db_instance_id":   module.KusionPathDependency(dbInstanceID, "id"),
 	}
 
 	id, err := module.TerraformResourceID(alicloudProviderCfg, alicloudRDSAccount, postgres.DatabaseName)

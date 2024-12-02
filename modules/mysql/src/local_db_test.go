@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestMySQLModule_GenerateLocalResources(t *testing.T) {
@@ -13,11 +13,9 @@ func TestMySQLModule_GenerateLocalResources(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -44,11 +42,9 @@ func TestMySQLModule_GenerateLocalSecret(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -74,11 +70,9 @@ func TestMySQLModule_GenerateLocalDeployment(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -104,11 +98,9 @@ func TestMySQLModule_GenerateLocalPodSpec(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -134,11 +126,9 @@ func TestMySQLModule_GenerateLocalPVC(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -164,11 +154,9 @@ func TestMySQLModule_GenerateLocalService(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &v1.Workload{
-			Header: v1.Header{
-				Type: "Service",
-			},
-			Service: &v1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 

@@ -3,54 +3,65 @@ package main
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestMySQLModule_Generator(t *testing.T) {
+	// Set provider envs.
+	originAWSRegion := os.Getenv("AWS_REGION")
+	originAlicloudRegion := os.Getenv("ALICLOUD_REGION")
+
+	defer func() {
+		os.Setenv("AWS_REGION", originAWSRegion)
+		os.Setenv("ALICLOUD_REGION", originAlicloudRegion)
+	}()
+
+	os.Setenv("AWS_REGION", "us-east-1")
+	os.Setenv("ALICLOUD_REGION", "cn-beijing")
+
 	// TODO: set env for AWS & Alicloud Region.
 	r := &module.GeneratorRequest{
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &apiv1.Workload{
-			Header: apiv1.Header{
-				Type: "Service",
-			},
-			Service: &apiv1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
 	testcases := []struct {
 		name            string
-		devModuleConfig apiv1.Accessory
-		platformConfig  apiv1.GenericConfig
+		devModuleConfig kusionapiv1.Accessory
+		platformConfig  kusionapiv1.GenericConfig
 		expectedErr     error
 	}{
 		{
 			name: "Generate local MySQL database",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "local",
 				"version": "8.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"databaseName": "test-mysql",
 			},
 			expectedErr: nil,
 		},
 		{
 			name: "Generate AWS MySQL RDS",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "cloud",
 				"version": "8.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"cloud":          "aws",
 				"size":           20,
 				"instanceType":   "db.t3.micro",
@@ -60,11 +71,11 @@ func TestMySQLModule_Generator(t *testing.T) {
 		},
 		{
 			name: "Generate Alicloud MySQL RDS",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "cloud",
 				"version": "8.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"cloud":          "alicloud",
 				"size":           20,
 				"instanceType":   "mysql.n2.serverless.1c",
@@ -76,22 +87,22 @@ func TestMySQLModule_Generator(t *testing.T) {
 		},
 		{
 			name: "Unsupported MySQL type",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "unsupported-type",
 				"version": "8.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"databaseName": "test-mysql",
 			},
 			expectedErr: errors.New("unsupported mysql type"),
 		},
 		{
 			name: "Unsupported Terraform provider type",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "cloud",
 				"version": "8.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"cloud":        "unsupported-type",
 				"instanceType": "db.t3.micro",
 			},
@@ -99,11 +110,11 @@ func TestMySQLModule_Generator(t *testing.T) {
 		},
 		{
 			name: "Empty cloud MySQL instance type",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "cloud",
 				"version": "8.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"cloud": "aws",
 			},
 			expectedErr: ErrEmptyInstanceTypeForCloudDB,
@@ -130,13 +141,13 @@ func TestMySQLModule_Generator(t *testing.T) {
 func TestMySQLModule_GetCompleteConfig(t *testing.T) {
 	testcases := []struct {
 		name            string
-		devModuleConfig apiv1.Accessory
-		platformConfig  apiv1.GenericConfig
+		devModuleConfig kusionapiv1.Accessory
+		platformConfig  kusionapiv1.GenericConfig
 		expectedMySQL   *MySQL
 	}{
 		{
 			name: "Empty platform config",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "local",
 				"version": "8.0",
 			},
@@ -153,11 +164,11 @@ func TestMySQLModule_GetCompleteConfig(t *testing.T) {
 		},
 		{
 			name: "Default config with specified platform config",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"type":    "cloud",
 				"version": "8.0",
 			},
-			platformConfig: apiv1.GenericConfig{
+			platformConfig: kusionapiv1.GenericConfig{
 				"size":           100,
 				"privateRouting": true,
 				"instanceType":   "test-instance-type",
@@ -197,11 +208,9 @@ func TestMySQLModule_GenerateDBSecret(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &apiv1.Workload{
-			Header: apiv1.Header{
-				Type: "Service",
-			},
-			Service: &apiv1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
@@ -237,7 +246,7 @@ func TestMySQLModule_GenerateDBSecret(t *testing.T) {
 		t.Fatalf("failed to wrap secret resource for unit test: %v", err)
 	}
 
-	expectedPatcher := &apiv1.Patcher{
+	expectedPatcher := &kusionapiv1.Patcher{
 		Environments: []v1.EnvVar{
 			{
 				Name: "KUSION_DB_HOST_TEST_DATABASE",
@@ -287,11 +296,9 @@ func TestMySQLModule_GenerateTFRandomPassword(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &apiv1.Workload{
-			Header: apiv1.Header{
-				Type: "Service",
-			},
-			Service: &apiv1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
