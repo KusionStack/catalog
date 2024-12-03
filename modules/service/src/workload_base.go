@@ -13,10 +13,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	kusionv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/modules"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
+	"kusionstack.io/kusion-module-framework/pkg/module"
+	"kusionstack.io/kusion-module-framework/pkg/util/workspace"
 	"kusionstack.io/kusion/pkg/util/net"
-	"kusionstack.io/kusion/pkg/workspace"
 )
 
 func toOrderedContainers(
@@ -30,7 +30,7 @@ func toOrderedContainers(
 	var volumes []corev1.Volume
 	var configMaps []corev1.ConfigMap
 
-	if err := modules.ForeachOrdered(appContainers, func(containerName string, c Container) error {
+	if err := module.ForeachOrdered(appContainers, func(containerName string, c Container) error {
 		// Create a slice of env vars based on the container's env vars.
 		var envs []corev1.EnvVar
 		for _, m := range c.Env {
@@ -286,7 +286,7 @@ func handleFileCreation(c Container, uniqueAppName, containerName string) (
 	err error,
 ) {
 	var idx int
-	err = modules.ForeachOrdered(c.Files, func(k string, v FileSpec) error {
+	err = module.ForeachOrdered(c.Files, func(k string, v FileSpec) error {
 		// The declared file path needs to include the file name.
 		if filepath.Base(k) == "." || filepath.Base(k) == "/" {
 			return fmt.Errorf("the declared file path needs to include the file name")
@@ -366,7 +366,7 @@ func handleFileCreation(c Container, uniqueAppName, containerName string) (
 // handleDirCreation handles the creation of folder declared in container.Dirs and returns
 // the generated Volume and VolumeMount.
 func handleDirCreation(c Container) (volumes []corev1.Volume, volumeMounts []corev1.VolumeMount, err error) {
-	err = modules.ForeachOrdered(c.Dirs, func(mountPath string, v string) error {
+	err = module.ForeachOrdered(c.Dirs, func(mountPath string, v string) error {
 		sec, ok, parseErr := parseSecretReference(v)
 		if parseErr != nil || !ok {
 			return fmt.Errorf("invalid dir configuration")
@@ -391,7 +391,7 @@ func handleDirCreation(c Container) (volumes []corev1.Volume, volumeMounts []cor
 }
 
 // completeBaseWorkload uses config from workspace to complete the Workload base config.
-func completeBaseWorkload(base *Base, config kusionv1.GenericConfig) error {
+func completeBaseWorkload(base *Base, config kusionapiv1.GenericConfig) error {
 	replicas, err := workspace.GetInt32PointerFromGenericConfig(config, FieldReplicas)
 	if err != nil {
 		return err

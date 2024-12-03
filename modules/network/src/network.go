@@ -2,20 +2,22 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
+	"kusionstack.io/kusion-module-framework/pkg/log"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/workspace"
+
+	"kusionstack.io/kusion-module-framework/pkg/util/workspace"
 )
 
 const (
@@ -82,16 +84,24 @@ type Port struct {
 	Annotations map[string]string `yaml:"annotations,omitempty" json:"annotations,omitempty"`
 }
 
-func (network *Network) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
+func (network *Network) Generate(ctx context.Context, request *module.GeneratorRequest) (response *module.GeneratorResponse, err error) {
+	// Get the module logger with the generator context.
+	logger := log.GetModuleLogger(ctx)
+	logger.Info("Generating resources...")
+
 	defer func() {
 		if r := recover(); r != nil {
-			log.Debugf("failed to generate network module: %v", r)
+			logger.Debug("failed to generate network module: %v", r)
+			response = nil
+			rawRequest, _ := json.Marshal(request)
+			err = fmt.Errorf("panic in network module generator but recovered with error: [%v] and stack %v and request %v",
+				r, string(debug.Stack()), string(rawRequest))
 		}
 	}()
 
 	// Network does not exist in AppConfiguration configs.
 	if request.DevConfig == nil {
-		log.Info("Network does not exist in AppConfig config")
+		logger.Info("Network does not exist in AppConfig config")
 
 		return nil, nil
 	}
@@ -100,11 +110,11 @@ func (network *Network) Generate(_ context.Context, request *module.GeneratorReq
 	if err := network.GetCompleteConfig(request.DevConfig, request.PlatformConfig); err != nil {
 		return nil, err
 	}
-	if len(network.Ports) != 0 && request.Workload.Service == nil {
+	if len(network.Ports) != 0 && request.Workload == nil {
 		return nil, ErrEmptySvcWorkload
 	}
 
-	var resources []apiv1.Resource
+	var resources []kusionapiv1.Resource
 	// Generate network port related resources.
 	res, err := network.GeneratePortResources(request)
 	if err != nil {
@@ -119,7 +129,7 @@ func (network *Network) Generate(_ context.Context, request *module.GeneratorReq
 
 // GetCompleteConfig combines the configs in devModuleConfig and platformModuleConfig to form a complete
 // configuration for the Network accessory.
-func (network *Network) GetCompleteConfig(devConfig apiv1.Accessory, platformConfig apiv1.GenericConfig) error {
+func (network *Network) GetCompleteConfig(devConfig kusionapiv1.Accessory, platformConfig kusionapiv1.GenericConfig) error {
 	// Get the complete port config.
 	if err := network.CompletePortConfig(devConfig, platformConfig); err != nil {
 		return err
@@ -129,7 +139,7 @@ func (network *Network) GetCompleteConfig(devConfig apiv1.Accessory, platformCon
 }
 
 // CompletePortConfig completes the network port related config.
-func (network *Network) CompletePortConfig(devConfig apiv1.Accessory, platformConfig apiv1.GenericConfig) error {
+func (network *Network) CompletePortConfig(devConfig kusionapiv1.Accessory, platformConfig kusionapiv1.GenericConfig) error {
 	if devConfig != nil {
 		ports, ok := devConfig["ports"]
 		if ok {
@@ -156,7 +166,7 @@ func (network *Network) CompletePortConfig(devConfig apiv1.Accessory, platformCo
 		}
 	}
 
-	var portConfig apiv1.GenericConfig
+	var portConfig kusionapiv1.GenericConfig
 	if platformConfig != nil {
 		pc, ok := platformConfig["port"]
 		if ok {
@@ -246,8 +256,8 @@ func (network *Network) ValidatePortConfig() error {
 }
 
 // GeneratePortResources generates the resources related to the network port.
-func (network *Network) GeneratePortResources(request *module.GeneratorRequest) ([]apiv1.Resource, error) {
-	var resources []apiv1.Resource
+func (network *Network) GeneratePortResources(request *module.GeneratorRequest) ([]kusionapiv1.Resource, error) {
+	var resources []kusionapiv1.Resource
 	privatePorts, publicPorts := splitPorts(network.Ports)
 	if len(privatePorts) != 0 {
 		svc := generatePortK8sSvc(request, false, privatePorts)
@@ -273,7 +283,7 @@ func (network *Network) GeneratePortResources(request *module.GeneratorRequest) 
 
 // generatePortK8sSvc generates the Kubernetes Service resource for the network port.
 func generatePortK8sSvc(request *module.GeneratorRequest, public bool, ports []Port) *v1.Service {
-	appUname := modules.UniqueAppName(request.Project, request.Stack, request.App)
+	appUname := module.UniqueAppName(request.Project, request.Stack, request.App)
 	var name string
 	if public {
 		name = fmt.Sprintf("%s-%s", appUname, suffixPublic)
@@ -285,9 +295,19 @@ func generatePortK8sSvc(request *module.GeneratorRequest, public bool, ports []P
 		svcType = v1.ServiceTypeLoadBalancer
 	}
 
-	labels := modules.MergeMaps(modules.UniqueAppLabels(request.Project, request.App), request.Workload.Service.Labels)
-	annotations := modules.MergeMaps(request.Workload.Service.Annotations)
-	selector := modules.UniqueAppLabels(request.Project, request.App)
+	svcLabels, ok := request.Workload["labels"]
+	if !ok {
+		svcLabels = make(map[string]string)
+	}
+
+	svcAnnotations, ok := request.Workload["annotations"]
+	if !ok {
+		svcAnnotations = make(map[string]string)
+	}
+
+	labels := module.MergeMaps(module.UniqueAppLabels(request.Project, request.App), svcLabels.(map[string]string))
+	annotations := module.MergeMaps(svcAnnotations.(map[string]string))
+	selector := module.UniqueAppLabels(request.Project, request.App)
 
 	svc := &v1.Service{
 		TypeMeta: metav1.TypeMeta{
@@ -365,9 +385,9 @@ func toMapStringInterface(i any) (map[string]interface{}, error) {
 		}
 	} else if p, ok := i.(map[string]interface{}); ok {
 		m = p
-	} else if p, ok := i.(apiv1.Accessory); ok {
+	} else if p, ok := i.(kusionapiv1.Accessory); ok {
 		m = map[string]interface{}(p)
-	} else if p, ok := i.(apiv1.GenericConfig); ok {
+	} else if p, ok := i.(kusionapiv1.GenericConfig); ok {
 		m = map[string]interface{}(p)
 	} else {
 		return nil, fmt.Errorf("unexpected type: %T", i)

@@ -8,13 +8,13 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 // GenerateOllamaResource generates the the resources of Ollama
-func (infer *Inference) GenerateOllamaResource(request *module.GeneratorRequest) ([]apiv1.Resource, *apiv1.Patcher, error) {
-	var resources []apiv1.Resource
+func (infer *Inference) GenerateOllamaResource(request *module.GeneratorRequest) ([]kusionapiv1.Resource, *kusionapiv1.Patcher, error) {
+	var resources []kusionapiv1.Resource
 
 	// Build Kubernetes Deployment for Ollama framework.
 	deployment, err := infer.generateOllamaDeployment(request)
@@ -128,7 +128,7 @@ func (infer *Inference) generateOllamaPodSpec(_ *module.GeneratorRequest) (v1.Po
 }
 
 // generateDeployment generates the Kubernetes Deployment resource for Ollama framework.
-func (infer *Inference) generateOllamaDeployment(request *module.GeneratorRequest) (*apiv1.Resource, error) {
+func (infer *Inference) generateOllamaDeployment(request *module.GeneratorRequest) (*kusionapiv1.Resource, error) {
 	// Prepare the Pod Spec for Ollama framework.
 	podSpec, err := infer.generateOllamaPodSpec(request)
 	if err != nil {
@@ -168,7 +168,7 @@ func (infer *Inference) generateOllamaDeployment(request *module.GeneratorReques
 }
 
 // generateService generates the Kubernetes Service resource for Ollama framework.
-func (infer *Inference) generateOllamaService(request *module.GeneratorRequest) (*apiv1.Resource, string, error) {
+func (infer *Inference) generateOllamaService(request *module.GeneratorRequest) (*kusionapiv1.Resource, string, error) {
 	// Prepare the service port for Ollama framework.
 	svcName := strings.ToLower(infer.Framework) + inferServiceSuffix
 	svcPort := []v1.ServicePort{
@@ -262,7 +262,7 @@ func (infer *Inference) generateProxyPodSpec(_ *module.GeneratorRequest, svcName
 }
 
 // generateDeployment generates the Kubernetes Deployment resource for proxy.
-func (infer *Inference) generateProxyDeployment(request *module.GeneratorRequest, svcName string) (*apiv1.Resource, error) {
+func (infer *Inference) generateProxyDeployment(request *module.GeneratorRequest, svcName string) (*kusionapiv1.Resource, error) {
 	podSpec, err := infer.generateProxyPodSpec(request, svcName)
 	if err != nil {
 		return nil, nil
@@ -300,7 +300,7 @@ func (infer *Inference) generateProxyDeployment(request *module.GeneratorRequest
 }
 
 // generateService generates the Kubernetes Service resource for proxy.
-func (infer *Inference) generateProxyService(request *module.GeneratorRequest) (*apiv1.Resource, string, error) {
+func (infer *Inference) generateProxyService(request *module.GeneratorRequest) (*kusionapiv1.Resource, string, error) {
 	svcName := strings.ToLower(ProxyName) + inferServiceSuffix
 	svcPort := []v1.ServicePort{
 		{

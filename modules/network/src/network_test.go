@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestNetworkModule_Generator(t *testing.T) {
@@ -14,23 +14,21 @@ func TestNetworkModule_Generator(t *testing.T) {
 		Project: "test-project",
 		Stack:   "test-stack",
 		App:     "test-app",
-		Workload: &apiv1.Workload{
-			Header: apiv1.Header{
-				Type: "Service",
-			},
-			Service: &apiv1.Service{},
+		Workload: kusionapiv1.Accessory{
+			"_type": "service.Service",
+			"type":  "service",
 		},
 	}
 
 	testcases := []struct {
 		name                 string
-		devModuleConfig      apiv1.Accessory
-		platformModuleConfig apiv1.GenericConfig
+		devModuleConfig      kusionapiv1.Accessory
+		platformModuleConfig kusionapiv1.GenericConfig
 		expectedErr          error
 	}{
 		{
 			name: "Generate private port service",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"ports": []interface{}{
 					map[string]any{
 						"port":     8080,
@@ -43,7 +41,7 @@ func TestNetworkModule_Generator(t *testing.T) {
 		},
 		{
 			name: "Generate public port service",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"ports": []interface{}{
 					map[string]any{
 						"port":     8080,
@@ -52,7 +50,7 @@ func TestNetworkModule_Generator(t *testing.T) {
 					},
 				},
 			},
-			platformModuleConfig: apiv1.GenericConfig{
+			platformModuleConfig: kusionapiv1.GenericConfig{
 				"port": map[string]any{
 					"type": "alicloud",
 					"annotations": map[string]string{
@@ -84,13 +82,13 @@ func TestNetworkModule_Generator(t *testing.T) {
 func TestNetworkModule_GetCompleteConfig(t *testing.T) {
 	testcases := []struct {
 		name                 string
-		devModuleConfig      apiv1.Accessory
-		platformModuleConfig apiv1.GenericConfig
+		devModuleConfig      kusionapiv1.Accessory
+		platformModuleConfig kusionapiv1.GenericConfig
 		expectedErr          error
 	}{
 		{
 			name: "Generate private port service",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"ports": []interface{}{
 					map[string]any{
 						"port":     8080,
@@ -103,7 +101,7 @@ func TestNetworkModule_GetCompleteConfig(t *testing.T) {
 		},
 		{
 			name: "Generate public port service",
-			devModuleConfig: apiv1.Accessory{
+			devModuleConfig: kusionapiv1.Accessory{
 				"ports": []interface{}{
 					map[string]any{
 						"port":     8080,
@@ -112,7 +110,7 @@ func TestNetworkModule_GetCompleteConfig(t *testing.T) {
 					},
 				},
 			},
-			platformModuleConfig: apiv1.GenericConfig{
+			platformModuleConfig: kusionapiv1.GenericConfig{
 				"port": map[string]any{
 					"type": "alicloud",
 					"annotations": map[string]string{

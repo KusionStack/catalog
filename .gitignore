@@ -25,3 +25,8 @@ modules/bin/
 
 # kcl mod lock files
 kcl.mod.lock
+
+# Local binary files
+bin/
+
+vendor/

@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"gopkg.in/yaml.v2"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
 )
 
 func TestOpsRuleModule_Generate(t *testing.T) {
-	resConfig30 := v1.Resource{
+	resConfig30 := kusionapiv1.Resource{
 		ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:default:default-dev-foo",
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -41,7 +41,7 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 			"GVK": "apps.kusionstack.io/v1alpha1, Kind=PodTransitionRule",
 		},
 	}
-	resConfig40 := v1.Resource{
+	resConfig40 := kusionapiv1.Resource{
 		ID:   "apps.kusionstack.io/v1alpha1:PodTransitionRule:default:default-dev-foo",
 		Type: "Kubernetes",
 		Attributes: map[string]interface{}{
@@ -72,18 +72,13 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 		},
 	}
 
-	jobWorkloadConfig := &v1.Workload{
-		Header: v1.Header{
-			Type: v1.TypeJob,
-		},
+	jobWorkloadConfig := kusionapiv1.Accessory{
+		"_type": "job.Job",
+		"type":  "Job",
 	}
-	serviceWorkloadConfig := &v1.Workload{
-		Header: v1.Header{
-			Type: v1.TypeService,
-		},
-		Service: &v1.Service{
-			Type: v1.Collaset,
-		},
+	serviceWorkloadConfig := kusionapiv1.Accessory{
+		"_type": "service.Service",
+		"type":  "Collaset",
 	}
 	devConfig := map[string]interface{}{
 		"maxUnavailable": "30%",
@@ -93,10 +88,10 @@ func TestOpsRuleModule_Generate(t *testing.T) {
 	}
 
 	response30 := &module.GeneratorResponse{
-		Resources: []v1.Resource{resConfig30},
+		Resources: []kusionapiv1.Resource{resConfig30},
 	}
 	response40 := &module.GeneratorResponse{
-		Resources: []v1.Resource{resConfig40},
+		Resources: []kusionapiv1.Resource{resConfig40},
 	}
 
 	project := "default"

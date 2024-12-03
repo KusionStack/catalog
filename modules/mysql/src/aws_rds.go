@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 	"kusionstack.io/kusion-module-framework/pkg/module"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/modules"
 )
 
 var ErrEmptyAWSProviderRegion = errors.New("empty aws provider region")
@@ -36,8 +35,8 @@ type awsSecurityGroupTraffic struct {
 }
 
 // GenerateAWSResources generates the AWS provided MySQL database instance.
-func (mysql *MySQL) GenerateAWSResources(request *module.GeneratorRequest) ([]apiv1.Resource, *apiv1.Patcher, error) {
-	var resources []apiv1.Resource
+func (mysql *MySQL) GenerateAWSResources(request *module.GeneratorRequest) ([]kusionapiv1.Resource, *kusionapiv1.Patcher, error) {
+	var resources []kusionapiv1.Resource
 
 	// Set the AWS provider with the default provider config.
 	awsProviderCfg := defaultAWSProviderCfg
@@ -72,8 +71,8 @@ func (mysql *MySQL) GenerateAWSResources(request *module.GeneratorRequest) ([]ap
 	}
 	resources = append(resources, *awsDBInstance)
 
-	hostAddress := modules.KusionPathDependency(awsDBInstanceID, "address")
-	password := modules.KusionPathDependency(randomPasswordID, "result")
+	hostAddress := module.KusionPathDependency(awsDBInstanceID, "address")
+	password := module.KusionPathDependency(randomPasswordID, "result")
 
 	// Build Kubernetes Secret with the hostAddress, username and password of the AWS provided MySQL instance,
 	// and inject the credentials as the environment variable patcher.
@@ -87,7 +86,7 @@ func (mysql *MySQL) GenerateAWSResources(request *module.GeneratorRequest) ([]ap
 }
 
 // generateAWSSecurityGroup generates aws_security_group resource for the AWS provided MySQL database instance.
-func (mysql *MySQL) generateAWSSecurityGroup(awsProviderCfg module.ProviderConfig, region string) (*apiv1.Resource, string, error) {
+func (mysql *MySQL) generateAWSSecurityGroup(awsProviderCfg module.ProviderConfig, region string) (*kusionapiv1.Resource, string, error) {
 	// SecurityIPs should be in the format of IP address or Classes Inter-Domain
 	// Routing (CIDR) mode.
 	for _, ip := range mysql.SecurityIPs {
@@ -130,19 +129,19 @@ func (mysql *MySQL) generateAWSSecurityGroup(awsProviderCfg module.ProviderConfi
 }
 
 // generateAWSDBInstance generates aws_db_instance resource for the AWS provided MySQL database instance.
-func (mysql *MySQL) generateAWSDBInstance(awsProviderCfg module.ProviderConfig, region, randomPasswordID, awsSecurityGroupID string) (*apiv1.Resource, string, error) {
+func (mysql *MySQL) generateAWSDBInstance(awsProviderCfg module.ProviderConfig, region, randomPasswordID, awsSecurityGroupID string) (*kusionapiv1.Resource, string, error) {
 	resAttrs := map[string]interface{}{
 		"allocated_storage":   mysql.Size,
 		"engine":              dbEngine,
 		"engine_version":      mysql.Version,
 		"identifier":          mysql.DatabaseName,
 		"instance_class":      mysql.InstanceType,
-		"password":            modules.KusionPathDependency(randomPasswordID, "result"),
+		"password":            module.KusionPathDependency(randomPasswordID, "result"),
 		"publicly_accessible": IsPublicAccessible(mysql.SecurityIPs),
 		"skip_final_snapshot": true,
 		"username":            mysql.Username,
 		"vpc_security_group_ids": []string{
-			modules.KusionPathDependency(awsSecurityGroupID, "id"),
+			module.KusionPathDependency(awsSecurityGroupID, "id"),
 		},
 	}
 

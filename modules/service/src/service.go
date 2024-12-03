@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"runtime/debug"
 
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
@@ -11,12 +13,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"kusionstack.io/kube-api/apps/v1alpha1"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
+	"kusionstack.io/kusion-module-framework/pkg/log"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	kusionv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/modules"
-	"kusionstack.io/kusion/pkg/workspace"
+	"kusionstack.io/kusion-module-framework/pkg/util/workspace"
 )
 
 var (
@@ -27,15 +28,23 @@ var (
 	ErrDuplicatePortProtocol = errors.New("port-protocol pair must not be duplicate")
 )
 
-func (svc *Service) Generate(_ context.Context, request *module.GeneratorRequest) (*module.GeneratorResponse, error) {
+func (svc *Service) Generate(ctx context.Context, request *module.GeneratorRequest) (response *module.GeneratorResponse, err error) {
+	// Get the module logger with the generator context.
+	logger := log.GetModuleLogger(ctx)
+	logger.Info("Generating resources...")
+
 	defer func() {
 		if r := recover(); r != nil {
-			log.Debugf("failed to generate Service module: %v", r)
+			logger.Debug("failed to generate Service module: %v", r)
+			response = nil
+			rawRequest, _ := json.Marshal(request)
+			err = fmt.Errorf("panic in service module generator but recovered with error: [%v] and stack %v and request %v",
+				r, string(debug.Stack()), string(rawRequest))
 		}
 	}()
 
 	if request.DevConfig == nil {
-		log.Info("Service does not exist in AppConfig config")
+		logger.Info("Service does not exist in AppConfig config")
 		return nil, nil
 	}
 	out, err := yaml.Marshal(request.DevConfig)
@@ -51,7 +60,7 @@ func (svc *Service) Generate(_ context.Context, request *module.GeneratorRequest
 		return nil, fmt.Errorf("complete Service by platform config failed, %w", err)
 	}
 
-	uniqueAppName := modules.UniqueAppName(request.Project, request.Stack, request.App)
+	uniqueAppName := module.UniqueAppName(request.Project, request.Stack, request.App)
 
 	// Create a slice of containers based on the App's containers along with related volumes and configMaps.
 	containers, volumes, configMaps, err := toOrderedContainers(svc.Containers, uniqueAppName)
@@ -61,7 +70,7 @@ func (svc *Service) Generate(_ context.Context, request *module.GeneratorRequest
 
 	topologySpreadConstraints := handleTopologySpreadConstraints(svc.TopologySpreadConstraints)
 
-	res := make([]kusionv1.Resource, 0)
+	res := make([]kusionapiv1.Resource, 0)
 	// Create ConfigMap objects based on the App's configuration.
 	for _, cm := range configMaps {
 		cm.Namespace = request.Project
@@ -73,9 +82,9 @@ func (svc *Service) Generate(_ context.Context, request *module.GeneratorRequest
 		res = append(res, *resource)
 	}
 
-	labels := modules.MergeMaps(modules.UniqueAppLabels(request.Project, request.App), svc.Labels)
-	annotations := modules.MergeMaps(svc.Annotations)
-	selectors := modules.UniqueAppLabels(request.Project, request.App)
+	labels := module.MergeMaps(module.UniqueAppLabels(request.Project, request.App), svc.Labels)
+	annotations := module.MergeMaps(svc.Annotations)
+	selectors := module.UniqueAppLabels(request.Project, request.App)
 
 	// Create a K8s Workload object based on the App's configuration.
 	// common parts
@@ -149,11 +158,11 @@ func (svc *Service) Generate(_ context.Context, request *module.GeneratorRequest
 			return nil, err
 		}
 	}
-	response := module.GeneratorResponse{
+	response = &module.GeneratorResponse{
 		Resources: res,
 	}
 
-	return &response, nil
+	return response, nil
 }
 
 func validatePorts(ports []Port) error {
@@ -205,7 +214,7 @@ func complete(ports []Port) error {
 	return nil
 }
 
-func completeServiceInput(service *Service, config kusionv1.GenericConfig) error {
+func completeServiceInput(service *Service, config kusionapiv1.GenericConfig) error {
 	if err := completeBaseWorkload(&service.Base, config); err != nil {
 		return err
 	}

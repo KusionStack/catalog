@@ -11,12 +11,12 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 )
 
 // GenerateLocalResources generates the resources of locally deployed MySQL database instance.
-func (mysql *MySQL) GenerateLocalResources(request *module.GeneratorRequest) ([]apiv1.Resource, *apiv1.Patcher, error) {
-	var resources []apiv1.Resource
+func (mysql *MySQL) GenerateLocalResources(request *module.GeneratorRequest) ([]kusionapiv1.Resource, *kusionapiv1.Patcher, error) {
+	var resources []kusionapiv1.Resource
 
 	// Build Kubernetes Secret for the random password of the local MySQL instance.
 	password := mysql.generateLocalPassword(request)
@@ -59,7 +59,7 @@ func (mysql *MySQL) GenerateLocalResources(request *module.GeneratorRequest) ([]
 }
 
 // generateLocalSecret generates the Kubernetes Secret resource for the local MySQL instance.
-func (mysql *MySQL) generateLocalSecret(request *module.GeneratorRequest, password string) (*apiv1.Resource, error) {
+func (mysql *MySQL) generateLocalSecret(request *module.GeneratorRequest, password string) (*kusionapiv1.Resource, error) {
 	// Set the password string.
 	data := make(map[string]string)
 	data["password"] = password
@@ -87,7 +87,7 @@ func (mysql *MySQL) generateLocalSecret(request *module.GeneratorRequest, passwo
 }
 
 // generateLocalDeployment generates the Kubernetes Deployment resource for the local MySQL instance.
-func (mysql *MySQL) generateLocalDeployment(request *module.GeneratorRequest) (*apiv1.Resource, error) {
+func (mysql *MySQL) generateLocalDeployment(request *module.GeneratorRequest) (*kusionapiv1.Resource, error) {
 	// Prepare the Pod Spec for the local MySQL instance.
 	podSpec, err := mysql.generateLocalPodSpec(request)
 	if err != nil {
@@ -213,7 +213,7 @@ func (mysql *MySQL) generateLocalPodSpec(_ *module.GeneratorRequest) (v1.PodSpec
 }
 
 // generateLocalPVC generates the Kubernetes Persistent Volume Claim resource for the local MySQL instance.
-func (mysql *MySQL) generateLocalPVC(request *module.GeneratorRequest) (*apiv1.Resource, error) {
+func (mysql *MySQL) generateLocalPVC(request *module.GeneratorRequest) (*kusionapiv1.Resource, error) {
 	// Create the Kubernetes PVC with the storage size of `mysql.Size`.
 	pvc := &v1.PersistentVolumeClaim{
 		TypeMeta: metav1.TypeMeta{
@@ -247,7 +247,7 @@ func (mysql *MySQL) generateLocalPVC(request *module.GeneratorRequest) (*apiv1.R
 }
 
 // generateLocalService generates the Kubernetes Service resource for the local MySQL instance.
-func (mysql *MySQL) generateLocalService(request *module.GeneratorRequest) (*apiv1.Resource, string, error) {
+func (mysql *MySQL) generateLocalService(request *module.GeneratorRequest) (*kusionapiv1.Resource, string, error) {
 	// Prepare the service port for the local MySQL instance.
 	svcPort := mysql.generateLocalSvcPort()
 	svcName := mysql.DatabaseName + localServiceSuffix

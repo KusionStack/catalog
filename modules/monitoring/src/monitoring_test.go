@@ -8,8 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	apiv1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/modules"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
 
 	"kusionstack.io/kusion-module-framework/pkg/module"
 )
@@ -35,11 +34,11 @@ func BuildMonitoringTestCase(
 		monitorKind = "PodMonitor"
 		endpointType = "podMetricsEndpoints"
 	}
-	var expectedResources []apiv1.Resource
-	var expectedPatcher apiv1.Patcher
-	uniqueName := modules.UniqueAppName(projectName, stackName, appName)
+	var expectedResources []kusionapiv1.Resource
+	var expectedPatcher kusionapiv1.Patcher
+	uniqueName := module.UniqueAppName(projectName, stackName, appName)
 	if operatorMode {
-		expectedResources = []apiv1.Resource{
+		expectedResources = []kusionapiv1.Resource{
 			{
 				ID:   fmt.Sprintf("monitoring.coreos.com/v1:%s:%s:%s-%s-monitor", monitorKind, projectName, uniqueName, strings.ToLower(monitorType)),
 				Type: "Kubernetes",
@@ -78,8 +77,13 @@ func BuildMonitoringTestCase(
 				},
 			},
 		}
+		expectedPatcher = kusionapiv1.Patcher{
+			Labels: map[string]string{
+				"kusion_monitoring_appname": appName,
+			},
+		}
 	} else {
-		expectedPatcher = apiv1.Patcher{
+		expectedPatcher = kusionapiv1.Patcher{
 			Annotations: map[string]string{
 				"prometheus.io/scrape": "true",
 				"prometheus.io/path":   path,
@@ -94,14 +98,14 @@ func BuildMonitoringTestCase(
 			Project: projectName,
 			Stack:   stackName,
 			App:     appName,
-			PlatformConfig: apiv1.GenericConfig{
+			PlatformConfig: kusionapiv1.GenericConfig{
 				TimeoutKey:      timeout,
 				IntervalKey:     interval,
 				SchemeKey:       scheme,
 				OperatorModeKey: operatorMode,
 				MonitorTypeKey:  monitorType,
 			},
-			DevConfig: apiv1.Accessory{
+			DevConfig: kusionapiv1.Accessory{
 				PathKey: path,
 				PortKey: port,
 			},

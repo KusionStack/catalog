@@ -7,11 +7,10 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	kusionapiv1 "kusionstack.io/kusion-api-go/api.kusion.io/v1"
+	"kusionstack.io/kusion-module-framework/pkg/log"
 	"kusionstack.io/kusion-module-framework/pkg/module"
 	"kusionstack.io/kusion-module-framework/pkg/server"
-	v1 "kusionstack.io/kusion/pkg/apis/api.kusion.io/v1"
-	"kusionstack.io/kusion/pkg/log"
-	"kusionstack.io/kusion/pkg/modules"
 )
 
 func main() {
@@ -52,8 +51,10 @@ type EbsOptions struct {
 
 type EffectType string
 
-const Allow EffectType = "Allow"
-const Deny EffectType = "Deny"
+const (
+	Allow EffectType = "Allow"
+	Deny  EffectType = "Deny"
+)
 
 type Statement struct {
 	// Whether this statement allows or denies the given actions. Valid values are Allow and Deny. Defaults to Allow.
@@ -72,7 +73,11 @@ type Principal struct {
 }
 
 // Generate implements the generation logic of openSearch module
-func (k *OpenSearch) Generate(_ context.Context, request *module.GeneratorRequest) (response *module.GeneratorResponse, err error) {
+func (k *OpenSearch) Generate(ctx context.Context, request *module.GeneratorRequest) (response *module.GeneratorResponse, err error) {
+	// Get the module logger with the generator context.
+	logger := log.GetModuleLogger(ctx)
+	logger.Info("Generating resources...")
+
 	defer func() {
 		if r := recover(); r != nil {
 			switch x := r.(type) {
@@ -81,7 +86,7 @@ func (k *OpenSearch) Generate(_ context.Context, request *module.GeneratorReques
 			default:
 				err = errors.New("unknown panic")
 			}
-			log.Errorf("failed to generate openSearch module: %v", r)
+			logger.Error("failed to generate openSearch module: %v", r)
 		}
 	}()
 
@@ -92,22 +97,22 @@ func (k *OpenSearch) Generate(_ context.Context, request *module.GeneratorReques
 
 	// OpenSearch module does not exist in AppConfiguration configs.
 	if request.DevConfig == nil {
-		log.Info("OpenSearch module does not exist in AppConfiguration configs")
+		logger.Info("OpenSearch module does not exist in AppConfiguration configs")
 	}
 
 	// Get the complete openSearch module configs.
 	if err = k.CompleteConfig(request.DevConfig, request.PlatformConfig); err != nil {
-		log.Debugf("failed to get complete openSearch module configs: %v", err)
+		logger.Debug("failed to get complete openSearch module configs: %v", err)
 		return nil, err
 	}
 
 	// Validate the completed openSearch module configs.
 	if err := k.ValidateConfig(); err != nil {
-		log.Errorf("failed to validate the openSearch module configs: %s", err.Error())
+		logger.Error("failed to validate the openSearch module configs: %s", err.Error())
 		return nil, err
 	}
 
-	var resources []v1.Resource
+	var resources []kusionapiv1.Resource
 
 	// Generate the Terraform aws_opensearch_domain
 	resource, patcher, err := k.GenerateOpenSearchDomain(request)
@@ -140,7 +145,7 @@ func validateRequest(request *module.GeneratorRequest) (*module.GeneratorRespons
 }
 
 // CompleteConfig completes the openSearch module configs with both DevConfig and platformModuleConfig.
-func (k *OpenSearch) CompleteConfig(devConfig v1.Accessory, platformConfig v1.GenericConfig) error {
+func (k *OpenSearch) CompleteConfig(devConfig kusionapiv1.Accessory, platformConfig kusionapiv1.GenericConfig) error {
 	if devConfig != nil {
 		devCfgYamlStr, err := json.Marshal(devConfig)
 		if err != nil {
@@ -173,7 +178,7 @@ func (k *OpenSearch) ValidateConfig() error {
 	}
 
 	statements := k.Statement
-	if statements != nil {
+	if len(statements) != 0 {
 		for _, statement := range statements {
 			if statement.Effect != Allow && statement.Effect != Deny {
 				return fmt.Errorf("invalid effect type: %s. Only 'Allow' and 'Deny' are allowed", statement.Effect)
@@ -184,7 +189,7 @@ func (k *OpenSearch) ValidateConfig() error {
 }
 
 // GenerateOpenSearchDomain generates the AWS Terraform provider OpenSearch resource
-func (k *OpenSearch) GenerateOpenSearchDomain(request *module.GeneratorRequest) (*v1.Resource, *v1.Patcher, error) {
+func (k *OpenSearch) GenerateOpenSearchDomain(request *module.GeneratorRequest) (*kusionapiv1.Resource, *kusionapiv1.Patcher, error) {
 	// Set the random_password provider config.
 
 	providerConfig := module.ProviderConfig{
@@ -217,7 +222,7 @@ func (k *OpenSearch) GenerateOpenSearchDomain(request *module.GeneratorRequest) 
 	}
 
 	// Generate Kusion resource ID and extensions
-	appUniqueName := modules.UniqueAppName(request.Project, request.Stack, request.App)
+	appUniqueName := module.UniqueAppName(request.Project, request.Stack, request.App)
 	resType := "aws_opensearch_domain"
 	resourceID, err := module.TerraformResourceID(providerConfig, resType, appUniqueName)
 	if err != nil {
@@ -229,15 +234,16 @@ func (k *OpenSearch) GenerateOpenSearchDomain(request *module.GeneratorRequest) 
 		return nil, nil, err
 	}
 
-	endpoint := modules.KusionPathDependency(resourceID, "endpoint")
-	patcher := &v1.Patcher{
-		Environments: []corev1.EnvVar{{
-			Name:  "OPEN_SEARCH_ENDPOINT",
-			Value: endpoint,
-		}, {
-			Name:  "OPEN_SEARCH_REGION",
-			Value: k.Region,
-		},
+	endpoint := module.KusionPathDependency(resourceID, "endpoint")
+	patcher := &kusionapiv1.Patcher{
+		Environments: []corev1.EnvVar{
+			{
+				Name:  "OPEN_SEARCH_ENDPOINT",
+				Value: endpoint,
+			}, {
+				Name:  "OPEN_SEARCH_REGION",
+				Value: k.Region,
+			},
 		},
 	}
 
