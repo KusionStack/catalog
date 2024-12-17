@@ -5,10 +5,12 @@ go 1.23.1
 toolchain go1.23.2
 
 require (
+	github.com/hashicorp/go-hclog v1.6.3
 	github.com/stretchr/testify v1.10.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.31.3
 	k8s.io/apimachinery v0.31.3
+	k8s.io/kubernetes v1.32.0
 	kusionstack.io/kusion-api-go v0.13.0
 	kusionstack.io/kusion-module-framework v0.2.3-beta.6
 )
@@ -21,7 +23,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-plugin v1.6.2 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
