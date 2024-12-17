@@ -80,10 +80,3 @@ schema HTTPIngressPath:
 
     check:
         pathType in ["Exact", "Prefix", "ImplementationSpecific"] if pathType, "pathType value is invalid"
-
-
-
-
-
-
-

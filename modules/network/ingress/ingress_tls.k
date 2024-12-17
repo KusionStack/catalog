@@ -18,5 +18,3 @@ schema IngressTLS:
 
     # SecretName is the name of the secret used to terminate TLS traffic on port 443.
     secretName?:            str
-
-
