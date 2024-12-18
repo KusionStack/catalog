@@ -1,7 +1,7 @@
 modules: 
   network: 
     path: oci://ghcr.io/kusionstack/network
-    version: 0.2.0
+    version: 0.2.3
     configs: 
       default: 
         port: 

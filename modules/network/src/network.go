@@ -67,7 +67,7 @@ func (network *Network) Generate(ctx context.Context, request *module.GeneratorR
 		resources = append(resources, *ingressRes)
 	}
 
-	// Generate network ingressClasss related resources.
+	// Generate network ingressClass related resources.
 	ingressClassRes, err := network.GenerateIngressClassResource(request)
 	if err != nil {
 		return nil, err

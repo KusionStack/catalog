@@ -2,7 +2,7 @@ TEST?=$$(go list ./... | grep -v 'vendor')
 ###### chang variables below according to your own modules ###
 NAMESPACE=kusionstack
 NAME=network
-VERSION=0.2.1-rc.1
+VERSION=0.2.3
 BINARY=../bin/kusion-module-${NAME}_${VERSION}
 
 LOCAL_ARCH := $(shell uname -m)
@@ -17,7 +17,7 @@ export OS_ARCH ?= $(GOARCH_LOCAL)
 default: install
 
 build-darwin:
-	GOOS=darwin GOARCH=arm64 go build -o ${BINARY} ./${NAME}
+	GOOS=darwin GOARCH=amd64 go build -o ${BINARY}
 
 install: build-darwin
 # copy module binary to $KUSION_HOME. e.g. ~/.kusion/modules/kusionstack/network/v0.1.0/darwin/arm64/kusion-module-network_0.1.0
