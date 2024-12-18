@@ -17,7 +17,7 @@ export OS_ARCH ?= $(GOARCH_LOCAL)
 default: install
 
 build-darwin:
-	GOOS=darwin GOARCH=amd64 go build -o ${BINARY}
+	GOOS=darwin GOARCH=arm64 go build -o ${BINARY}
 
 install: build-darwin
 # copy module binary to $KUSION_HOME. e.g. ~/.kusion/modules/kusionstack/network/v0.1.0/darwin/arm64/kusion-module-network_0.1.0
