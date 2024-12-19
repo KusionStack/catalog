@@ -3,6 +3,7 @@ import kam.v1.app_configuration as ac
 import service
 import service.container as c
 import network as n
+import network.ingress as ni
 
 nginx: ac.AppConfiguration {
     workload: service.Service {
@@ -16,10 +17,39 @@ nginx: ac.AppConfiguration {
         "network": n.Network {
             ports: [
                 n.Port {
-                    port: 80
-                    public: True
+                    port: 8080
+                    targetPort: 80
+                    public: False
                 }
             ]
+           ingress: {
+               defaultBackend: {
+                    service: {
+                        port: {
+                            number: 8080
+                        }
+                    }
+               }
+               rules: [
+                    {
+                        http: {
+                            paths: [
+                                {
+                                    path: "/"
+                                    pathType: "Prefix"
+                                    backend: {
+                                        service: {
+                                            port: {
+                                                number: 8080
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+               ]
+           }
         }
     }
 }
