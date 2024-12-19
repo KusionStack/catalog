@@ -203,3 +203,118 @@ func TestNetworkModule_Validate(t *testing.T) {
 		})
 	}
 }
+
+func TestNetworkModule_GenerateIngressResource(t *testing.T) {
+	r := &module.GeneratorRequest{
+		Project: "test-project",
+		Stack:   "test-stack",
+		App:     "test-app",
+		Workload: kusionapiv1.Accessory{
+			"_type": "network.Network",
+		},
+	}
+
+	ingresClassName := "nginx-example"
+	testcases := []struct {
+		name        string
+		ingress     Ingress
+		expectedErr bool
+	}{
+		{
+			name: "Generate ingress resources",
+			ingress: Ingress{
+				Annotations: map[string]string{
+					"nginx.ingress.kubernetes.io/rewrite-target": "/",
+				},
+				IngressClassName: &ingresClassName,
+				DefaultBackend: &IngressBackend{
+					Service: &IngressServiceBackend{
+						Name: "test",
+						Port: ServiceBackendPort{
+							Number: 80,
+						},
+					},
+				},
+				TLS: []IngressTLS{
+					{
+						Hosts:      []string{"https-example.foo.com"},
+						SecretName: "testsecret-tls",
+					},
+				},
+				Rules: []IngressRule{
+					{
+						Host: "foo.bar.com",
+						HTTP: &HTTPIngressRuleValue{
+							Paths: []HTTPIngressPath{
+								{
+									Path:     "/foo",
+									PathType: "Prefix",
+									Backend: IngressBackend{
+										Service: &IngressServiceBackend{
+											Name: "service1",
+											Port: ServiceBackendPort{
+												Number: 4200,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedErr: false,
+		},
+	}
+
+	for _, tc := range testcases {
+		network := &Network{
+			Ingress: &tc.ingress,
+		}
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := network.GenerateIngressResource(r)
+			assert.Equal(t, tc.expectedErr, err != nil)
+		})
+	}
+}
+
+func TestNetworkModule_GenerateIngressClassResource(t *testing.T) {
+	r := &module.GeneratorRequest{
+		Project: "test-project",
+		Stack:   "test-stack",
+		App:     "test-app",
+		Workload: kusionapiv1.Accessory{
+			"_type": "network.Network",
+		},
+	}
+
+	apiGroup := "k8s.example.net"
+	testcases := []struct {
+		name         string
+		ingressClass IngressClass
+		expectedErr  bool
+	}{
+		{
+			name: "Generate ingressClass resources",
+			ingressClass: IngressClass{
+				Controller: "example.com/ingress-controller",
+				Parameters: &IngressClassParametersReference{
+					APIGroup: &apiGroup,
+					Kind:     "ClusterIngressParameter",
+					Name:     "external-config-1",
+				},
+			},
+			expectedErr: false,
+		},
+	}
+
+	for _, tc := range testcases {
+		network := &Network{
+			IngressClass: &tc.ingressClass,
+		}
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := network.GenerateIngressClassResource(r)
+			assert.Equal(t, tc.expectedErr, err != nil)
+		})
+	}
+}
